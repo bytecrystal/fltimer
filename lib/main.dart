@@ -7,10 +7,10 @@ void main() async {
   await windowManager.ensureInitialized();
   WindowOptions windowOptions = WindowOptions(
     size: Size(600, 280),
-    backgroundColor: Colors.transparent,
+    // backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
-    minimumSize: Size(600, 280),
+    minimumSize: Size(600, 224),
     maximumSize: Size(600, 280),
   );
   // 确保窗口创建后再显示

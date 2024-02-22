@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -23,6 +24,28 @@ class _TimerScreenState extends State<TimerScreen> {
   bool isEditing = false;
   FocusNode focusNode = FocusNode();
   Offset _tapPosition = Offset.zero; // 初始化为零偏移
+  bool _showAppBar = true; // 默认设置为显示AppBar
+  double _textSize = 80.0; // 初始文本大小
+  double _minTextSize = 20.0; // 最小文本大小
+  double _maxTextSize = 200.0; // 最大文本大小
+
+  void _increaseTextSize() {
+    setState(() {
+      if (_textSize < _maxTextSize) {
+        _textSize += 2; // 举例增加大小，每次增加2pt
+        _saveTextSize(_textSize);
+      }
+    });
+  }
+
+  void _decreaseTextSize() {
+    setState(() {
+      if (_textSize > _minTextSize) {
+        _textSize -= 2; // 举例减小大小，每次减少2pt
+        _saveTextSize(_textSize);
+      }
+    });
+  }
 
   // 从 Shared Preferences 读取颜色
   Future<void> _loadColor() async {
@@ -46,6 +69,24 @@ class _TimerScreenState extends State<TimerScreen> {
     }
   }
 
+  Future<void> _loadTextSize() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      if (prefs.getDouble('textSize') != null) {
+        _textSize = prefs.getDouble('textSize')!;
+      }
+    });
+  }
+
+  Future<void> _loadShowAppBar() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      if (prefs.getBool('showAppBar') != null) {
+        _showAppBar = prefs.getBool('showAppBar')!;
+      }
+    });
+  }
+
   // 将颜色保存到 Shared Preferences
   Future<void> _saveColor(Color color) async {
     final prefs = await SharedPreferences.getInstance();
@@ -57,6 +98,17 @@ class _TimerScreenState extends State<TimerScreen> {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('titleText', text);
   }
+
+  Future<void> _saveTextSize(double textSize) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('textSize', textSize);
+  }
+
+  Future<void> _saveShowAppBar(bool showAppBar) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('showAppBar', showAppBar);
+  }
+
 
   void _toggleTimer() {
     if (_timer != null && _timer!.isActive) {
@@ -125,6 +177,8 @@ class _TimerScreenState extends State<TimerScreen> {
     _duration = widget.duration;
     _loadColor(); // 加载颜色
     _loadTitleText(); // 加载标题文本
+    _loadTextSize(); // 加载时间文本大小
+    _loadShowAppBar(); // 加载是否展示AppBar
     // 添加焦点变化的监听器
     focusNode.addListener(_handleFocusChange);
   }
@@ -168,6 +222,23 @@ class _TimerScreenState extends State<TimerScreen> {
     }
   }
 
+  Future<void> _toggleAppBar() async {
+    // 获取当前窗口界限
+    Rect bounds = await windowManager.getBounds();
+
+    setState(() {
+      _showAppBar = !_showAppBar; // 切换状态
+      _saveShowAppBar(_showAppBar);
+
+      if (_showAppBar) {
+        // 显示AppBar时，增加窗口高度
+        windowManager.setSize(Size(bounds.width, bounds.height + kToolbarHeight));
+      } else {
+        // 隐藏AppBar时，减少窗口高度
+        windowManager.setSize(Size(bounds.width, bounds.height - kToolbarHeight));
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,143 +247,162 @@ class _TimerScreenState extends State<TimerScreen> {
     final minutes = twoDigits(_duration.inMinutes.remainder(60));
     final seconds = twoDigits(_duration.inSeconds.remainder(60));
 
-
-    return Scaffold(
-      // 创建一个可拖动的自定义标题栏
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            // 当用户在这个区域按下鼠标时，调用 WindowManager.startDragging
-            onPanStart: (_) => windowManager.startDragging(),
-            onDoubleTap: () {
-              setState(() {
-                isEditing = true;
-              });
-              focusNode.requestFocus();
-              // 调用requestFocus来强制文本字段获取焦点
-              // FocusScope.of(context).requestFocus(focusNode);
-            },
-            onSecondaryTapDown: (TapDownDetails details) {
-              _tapPosition = details.globalPosition;
-            },
-            onSecondaryTap: () {
-              // 在此处显示弹出菜单
-              final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-              showMenu<Color>(
-                context: context,
-                position: RelativeRect.fromRect(
-                  _tapPosition & Size(48, 48), // 小方块大小作为点击区域
-                  Offset.zero & overlay.size, // 不设置偏移
-                ),
-                items: [
-                  PopupMenuItem<Color>(
-                    value: Colors.red,
-                    onTap: () {
-                      SystemNavigator.pop(); // 调用此方法关闭应用程序
-                    },
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(Icons.close, color: Colors.black),
-                        Text('关闭')
-                      ],
+    return Listener(
+      onPointerDown: (PointerDownEvent event) => windowManager.startDragging(), // 当鼠标按下时开始拖拽
+      child: Scaffold(
+        // 创建一个可拖动的自定义标题栏
+        appBar: _showAppBar ? PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              // 当用户在这个区域按下鼠标时，调用 WindowManager.startDragging
+              onPanStart: (_) => windowManager.startDragging(),
+              onDoubleTap: () {
+                setState(() {
+                  isEditing = true;
+                });
+                focusNode.requestFocus();
+                // 调用requestFocus来强制文本字段获取焦点
+                // FocusScope.of(context).requestFocus(focusNode);
+              },
+              onSecondaryTapDown: (TapDownDetails details) {
+                _tapPosition = details.globalPosition;
+              },
+              onSecondaryTap: () {
+                // 在此处显示弹出菜单
+                final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+                showMenu<Color>(
+                  context: context,
+                  position: RelativeRect.fromRect(
+                    _tapPosition & Size(48, 48), // 小方块大小作为点击区域
+                    Offset.zero & overlay.size, // 不设置偏移
+                  ),
+                  items: [
+                    PopupMenuItem<Color>(
+                      value: Colors.red,
+                      onTap: () {
+                        SystemNavigator.pop(); // 调用此方法关闭应用程序
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(Icons.close, color: Colors.black),
+                          Text('关闭')
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
-            child: Container(
-              // 装饰你的自定义标题栏
-              color: _timeColor,
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              alignment: Alignment.center,
-              child: isEditing ? TextField(
-                controller: controller,
-                focusNode: focusNode,
-                autofocus: true,
-                maxLength: 20,
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.white
-                ),
-                onSubmitted: (value) {
-                  setState(() {
-                    isEditing = false;
-                    _saveTitleText(value);
-                  });
-                },
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  counterText: "", // 隐藏TextField右下角的计数器
-                ),
-              ) : Text(
-                controller.text.isEmpty ? '' : controller.text,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                ),
-              )
-            ),
-          ),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              "$hours:$minutes:$seconds",
-              style: TextStyle(
-                fontSize: 100,
-                fontWeight: FontWeight.bold,
-                color: _timeColor.withOpacity(0.8)
-              ),
-            ),
-            // SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_duration.inSeconds > 0)
-                  IconButton(
-                    icon: Icon(_isRunning ? Icons.pause_circle_outline : Icons.play_arrow),
-                    onPressed: _toggleTimer,
-                    iconSize: 36, // 可以自定义图标大小
-                    tooltip: '开始/暂停', // 提供一个工具提示
-                  ),
-                // 定义按钮来选择颜色
-                IconButton(
-                  icon: Icon(Icons.color_lens),
-                  onPressed: _pickColor,
-                  iconSize: 36,
-                  tooltip: '选择颜色', // 提供一个工具提示
-                ),
-                // SizedBox(height: 20,),
-                IconButton(
-                  icon: Icon(Icons.timer_outlined),
-                  onPressed: _showTimePickerDialog,
-                  iconSize: 36, // 可以自定义图标大小
-                  tooltip: '选择时间', // 提供一个工具提示
-                ),
-                if (!_isRunning && _duration.inSeconds == 0)
-                  IconButton(
-                    icon: Icon(Icons.restore_outlined),
-                    onPressed: () {
+                  ],
+                );
+              },
+              child: Container(
+                // 装饰你的自定义标题栏
+                  color: _timeColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  alignment: Alignment.center,
+                  child: isEditing ? TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    autofocus: true,
+                    maxLength: 36,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white
+                    ),
+                    onSubmitted: (value) {
                       setState(() {
-                        _duration = widget.duration;
+                        isEditing = false;
+                        _saveTitleText(value);
                       });
                     },
-                    iconSize: 36, // 可以自定义图标大小
-                    color: Colors.red, // Reset 按钮的颜色是红色
-                    tooltip: '重置', // 提供一个工具提示
-                  ),
-              ],
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      counterText: "", // 隐藏TextField右下角的计数器
+                    ),
+                  ) : Text(
+                    controller.text.isEmpty ? '' : controller.text,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                    ),
+                  )
+              ),
             ),
-          ],
+          ),
+        ) : null,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                "$hours:$minutes:$seconds",
+                style: TextStyle(
+                    fontSize: _textSize,
+                    fontWeight: FontWeight.bold,
+                    color: _timeColor.withOpacity(0.8)
+                ),
+              ),
+              // SizedBox(height: 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_duration.inSeconds > 0)
+                    IconButton(
+                      icon: Icon(_isRunning ? Icons.pause_circle_outline : Icons.play_arrow),
+                      onPressed: _toggleTimer,
+                      iconSize: 36, // 可以自定义图标大小
+                      tooltip: '开始/暂停', // 提供一个工具提示
+                    ),
+                  // 定义按钮来选择颜色
+                  IconButton(
+                    icon: Icon(Icons.color_lens),
+                    onPressed: _pickColor,
+                    iconSize: 36,
+                    tooltip: '选择颜色', // 提供一个工具提示
+                  ),
+                  // SizedBox(height: 20,),
+                  IconButton(
+                    icon: Icon(Icons.timer_outlined),
+                    onPressed: _showTimePickerDialog,
+                    iconSize: 36, // 可以自定义图标大小
+                    tooltip: '选择时间', // 提供一个工具提示
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add_circle_outline),
+                    onPressed: _increaseTextSize,
+                    tooltip: '增加时间文字大小',
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.remove_circle_outline),
+                    onPressed: _decreaseTextSize,
+                    tooltip: '减少时间文字大小',
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      _showAppBar ? Icons.visibility_off_outlined : Icons.visibility_outlined, // 用来表示AppBar的显示状态
+                    ),
+                    onPressed: _toggleAppBar
+                  ),
+                  if (!_isRunning && _duration.inSeconds == 0)
+                    IconButton(
+                      icon: Icon(Icons.restore_outlined),
+                      onPressed: () {
+                        setState(() {
+                          _duration = widget.duration;
+                        });
+                      },
+                      iconSize: 36, // 可以自定义图标大小
+                      color: Colors.red, // Reset 按钮的颜色是红色
+                      tooltip: '重置', // 提供一个工具提示
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
+      )
     );
   }
 }
