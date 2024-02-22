@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
@@ -21,6 +22,7 @@ class _TimerScreenState extends State<TimerScreen> {
   TextEditingController controller = TextEditingController(text: "长路不必问归程");
   bool isEditing = false;
   FocusNode focusNode = FocusNode();
+  Offset _tapPosition = Offset.zero; // 初始化为零偏移
 
   // 从 Shared Preferences 读取颜色
   Future<void> _loadColor() async {
@@ -191,6 +193,35 @@ class _TimerScreenState extends State<TimerScreen> {
               focusNode.requestFocus();
               // 调用requestFocus来强制文本字段获取焦点
               // FocusScope.of(context).requestFocus(focusNode);
+            },
+            onSecondaryTapDown: (TapDownDetails details) {
+              _tapPosition = details.globalPosition;
+            },
+            onSecondaryTap: () {
+              // 在此处显示弹出菜单
+              final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+              showMenu<Color>(
+                context: context,
+                position: RelativeRect.fromRect(
+                  _tapPosition & Size(48, 48), // 小方块大小作为点击区域
+                  Offset.zero & overlay.size, // 不设置偏移
+                ),
+                items: [
+                  PopupMenuItem<Color>(
+                    value: Colors.red,
+                    onTap: () {
+                      SystemNavigator.pop(); // 调用此方法关闭应用程序
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Icon(Icons.close, color: Colors.black),
+                        Text('关闭')
+                      ],
+                    ),
+                  ),
+                ],
+              );
             },
             child: Container(
               // 装饰你的自定义标题栏
