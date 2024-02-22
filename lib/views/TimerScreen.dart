@@ -54,6 +54,22 @@ class _TimerScreenState extends State<TimerScreen> {
     super.dispose();
   }
 
+  Future<void> _showTimePickerDialog() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: _duration.inHours,
+        minute: _duration.inMinutes.remainder(60),
+      ),
+    );
+    if (picked != null) {
+      setState(() {
+        _duration = Duration(hours: picked.hour, minutes: picked.minute);
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -63,7 +79,7 @@ class _TimerScreenState extends State<TimerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('人生如棋，落子无悔！'),
+        title: Text('My Timer'),
       ),
       body: Center(
         child: Column(
@@ -72,26 +88,38 @@ class _TimerScreenState extends State<TimerScreen> {
             Text(
               "$hours:$minutes:$seconds",
               style: TextStyle(
-                fontSize: 50,
+                fontSize: 100,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _toggleTimer,
-              child: Text(_isRunning ? 'Pause' : 'Start'),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(_isRunning ? Icons.pause_circle_outline : Icons.play_arrow),
+                  onPressed: _toggleTimer,
+                  iconSize: 36, // 可以自定义图标大小
+                ),
+                // SizedBox(height: 20,),
+                IconButton(
+                  icon: Icon(Icons.settings_outlined),
+                  onPressed: _showTimePickerDialog,
+                  iconSize: 36, // 可以自定义图标大小
+                ),
+                if (!_isRunning && _duration.inSeconds == 0)
+                  IconButton(
+                    icon: Icon(Icons.restore_outlined),
+                    onPressed: () {
+                      setState(() {
+                        _duration = widget.duration;
+                      });
+                    },
+                    iconSize: 36, // 可以自定义图标大小
+                    color: Colors.red, // Reset 按钮的颜色是红色
+                  ),
+              ],
             ),
-            if (!_isRunning && _duration.inSeconds == 0)
-              ElevatedButton(
-                onPressed: () {
-                  // Reset the timer
-                  setState(() {
-                    _duration = widget.duration;
-                  });
-                },
-                child: Text('Reset'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              ),
           ],
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:flipclock/views/TimerScreen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
+
   runApp(MyApp());
 }
 
