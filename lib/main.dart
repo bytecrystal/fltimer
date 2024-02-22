@@ -1,10 +1,24 @@
-import 'dart:async';
-
-import 'package:flipclock/views/CountdownScreen.dart';
 import 'package:flipclock/views/TimerScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
+  WindowOptions windowOptions = WindowOptions(
+    size: Size(600, 280),
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.hidden,
+  );
+  // 确保窗口创建后再显示
+
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+
+    await windowManager.setAlwaysOnTop(true);
+  });
 
   runApp(MyApp());
 }
@@ -19,6 +33,6 @@ class MyApp extends StatelessWidget {
       ),
       // home: ClockScreen(),
       home: TimerScreen(key: const Key("Timer"), duration: Duration(minutes: 30))
-    );// 目标日期设置为当前时间之后的1天    );
+    );
   }
 }
