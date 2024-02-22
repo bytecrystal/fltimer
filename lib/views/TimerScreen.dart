@@ -26,8 +26,8 @@ class _TimerScreenState extends State<TimerScreen> {
   Offset _tapPosition = Offset.zero; // 初始化为零偏移
   bool _showAppBar = true; // 默认设置为显示AppBar
   double _textSize = 80.0; // 初始文本大小
-  double _minTextSize = 20.0; // 最小文本大小
-  double _maxTextSize = 200.0; // 最大文本大小
+  final double _minTextSize = 20.0; // 最小文本大小
+  final double _maxTextSize = 200.0; // 最大文本大小
 
   void _increaseTextSize() {
     setState(() {
@@ -179,6 +179,7 @@ class _TimerScreenState extends State<TimerScreen> {
     _loadTitleText(); // 加载标题文本
     _loadTextSize(); // 加载时间文本大小
     _loadShowAppBar(); // 加载是否展示AppBar
+    _changeWindowSize(_showAppBar);
     // 添加焦点变化的监听器
     focusNode.addListener(_handleFocusChange);
   }
@@ -223,21 +224,23 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   Future<void> _toggleAppBar() async {
-    // 获取当前窗口界限
-    Rect bounds = await windowManager.getBounds();
-
     setState(() {
       _showAppBar = !_showAppBar; // 切换状态
       _saveShowAppBar(_showAppBar);
-
-      if (_showAppBar) {
-        // 显示AppBar时，增加窗口高度
-        windowManager.setSize(Size(bounds.width, bounds.height + kToolbarHeight));
-      } else {
-        // 隐藏AppBar时，减少窗口高度
-        windowManager.setSize(Size(bounds.width, bounds.height - kToolbarHeight));
-      }
+      _changeWindowSize(_showAppBar);
     });
+  }
+
+  Future<void> _changeWindowSize(bool showAppBar) async {
+    // 获取当前窗口界限
+    Rect bounds = await windowManager.getBounds();
+    if (showAppBar) {
+      // 显示AppBar时，增加窗口高度
+      windowManager.setSize(Size(bounds.width, bounds.height + kToolbarHeight));
+    } else {
+      // 隐藏AppBar时，减少窗口高度
+      windowManager.setSize(Size(bounds.width, bounds.height - kToolbarHeight));
+    }
   }
 
   @override
