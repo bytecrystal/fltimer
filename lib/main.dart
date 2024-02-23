@@ -27,7 +27,7 @@ void main() async {
     // backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
-    minimumSize: Size(600, 224),
+    // minimumSize: Size(500, 160),
     maximumSize: Size(600, 280),
   );
   // 确保窗口创建后再显示

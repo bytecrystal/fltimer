@@ -27,8 +27,11 @@ class _TimerScreenState extends State<TimerScreen> {
   bool _showAppBar = true; // 默认显示AppBar
   double _textSize = 80.0; // 初始文本大小
   final double _minTextSize = 20.0; // 最小文本大小
-  final double _maxTextSize = 200.0; // 最大文本大小
+  final double _maxTextSize = 120.0; // 最大文本大小
   bool _displayCurrentTime = false;
+  bool _showIcons = true; // 控制下方所有IconButton显示的状态，默认为true
+  double iconSize = 30;
+  GlobalKey timeWidgetKey = GlobalKey();
 
 
   void _toggleDisplayTime() {
@@ -284,6 +287,44 @@ class _TimerScreenState extends State<TimerScreen> {
     }
   }
 
+  Future<void> _toggleShowIcons() async {
+    setState(() {
+      _showIcons = !_showIcons;
+      _updateWindowSizeWithShowIcons(_showIcons);
+    });
+  }
+
+  // 计算IconButton区域的高度
+  // double _getIconsHeight() {
+  //   return iconSize + 16; // 假设每个IconButton高度为iconSize，加上16个单位的垂直间距
+  // }
+
+  Future<void> _updateWindowSizeWithShowIcons(bool showIcons) async {
+    final RenderObject? renderBox = timeWidgetKey.currentContext?.findRenderObject();
+    if (renderBox != null) {
+      if (!_showIcons) {
+        windowManager.setSize(Size(renderBox.paintBounds.width + 10, _showAppBar ? renderBox.paintBounds.height + kToolbarHeight
+            : renderBox.paintBounds.height));
+      }
+    }
+    double height = 280;
+    if (_showIcons) {
+      if (!_showAppBar) {
+        height = height - kToolbarHeight;
+      }
+      windowManager.setSize(Size(600, height));
+    }
+    // Rect bounds = await windowManager.getBounds();
+    // if (showIcons) {
+    //   // 显示IconButton时，增加窗口高度
+    //   windowManager.setSize(Size(bounds.width, bounds.height + _getIconsHeight()));
+    // } else {
+    //   // 隐藏IconButton时，减少窗口高度
+    //   windowManager.setSize(Size(bounds.width, bounds.height - _getIconsHeight()));
+    // }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     // 获取当前系统时间，移至此处以确保它在_build方法中动态更新
@@ -293,7 +334,6 @@ class _TimerScreenState extends State<TimerScreen> {
     final minutes = twoDigits(_displayCurrentTime ? now.minute : _duration.inMinutes.remainder(60));
     final seconds = twoDigits(_displayCurrentTime ? now.second : _duration.inSeconds.remainder(60));
 
-    double iconSize = 30;
 
     return Listener(
       onPointerDown: (PointerDownEvent event) => windowManager.startDragging(), // 当鼠标按下时开始拖拽
@@ -381,87 +421,92 @@ class _TimerScreenState extends State<TimerScreen> {
             ),
           ),
         ) : null,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                "$hours:$minutes:$seconds",
-                style: TextStyle(
-                    fontSize: _textSize,
-                    fontWeight: FontWeight.bold,
-                    color: _timeColor.withOpacity(0.8)
+        body: GestureDetector(
+          onDoubleTap: _toggleShowIcons,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  key: timeWidgetKey,
+                  "$hours:$minutes:$seconds",
+                  style: TextStyle(
+                      fontSize: _textSize,
+                      fontWeight: FontWeight.bold,
+                      color: _timeColor.withOpacity(0.8)
+                  ),
                 ),
-              ),
-              // SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (!_displayCurrentTime && _duration.inSeconds > 0)
+                // SizedBox(height: 5),
+                if (_showIcons)
+                  Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (!_displayCurrentTime && _duration.inSeconds > 0)
+                      IconButton(
+                        icon: Icon(_isRunning ? Icons.pause_circle_outline : Icons.play_circle_outline),
+                        onPressed: _toggleTimer,
+                        iconSize: iconSize, // 可以自定义图标大小
+                        tooltip: '开始/暂停', // 提供一个工具提示
+                      ),
+                    // 定义按钮来选择颜色
                     IconButton(
-                      icon: Icon(_isRunning ? Icons.pause_circle_outline : Icons.play_circle_outline),
-                      onPressed: _toggleTimer,
+                      icon: Icon(Icons.color_lens_outlined),
+                      onPressed: _pickColor,
+                      iconSize: iconSize,
+                      tooltip: '选择颜色', // 提供一个工具提示
+                    ),
+                    // SizedBox(height: 20,),
+                    if (!_displayCurrentTime)
+                      IconButton(
+                        icon: Icon(Icons.settings_outlined),
+                        onPressed: _showTimePickerDialog,
+                        iconSize: iconSize, // 可以自定义图标大小
+                        tooltip: '选择时间', // 提供一个工具提示
+                      ),
+                    IconButton(
+                      icon: Icon(Icons.add_circle_outline),
+                      iconSize: iconSize,
+                      onPressed: _increaseTextSize,
+                      tooltip: '增加时间文字大小',
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.remove_circle_outline),
+                      iconSize: iconSize,
+                      onPressed: _decreaseTextSize,
+                      tooltip: '减少时间文字大小',
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        _displayCurrentTime ? Icons.access_time_outlined : Icons.timer_outlined, // 使用条件图标来指示时间类型
+                      ),
+                      onPressed: _toggleDisplayTime, // 切换显示时间类型
                       iconSize: iconSize, // 可以自定义图标大小
-                      tooltip: '开始/暂停', // 提供一个工具提示
+                      tooltip: '定时器/时钟', // 提供一个工具提示
                     ),
-                  // 定义按钮来选择颜色
-                  IconButton(
-                    icon: Icon(Icons.color_lens_outlined),
-                    onPressed: _pickColor,
-                    iconSize: iconSize,
-                    tooltip: '选择颜色', // 提供一个工具提示
-                  ),
-                  // SizedBox(height: 20,),
-                  if (!_displayCurrentTime)
                     IconButton(
-                      icon: Icon(Icons.settings_outlined),
-                      onPressed: _showTimePickerDialog,
-                      iconSize: iconSize, // 可以自定义图标大小
-                      tooltip: '选择时间', // 提供一个工具提示
+                      icon: Icon(
+                        _showAppBar ? Icons.visibility_off_outlined : Icons.visibility_outlined, // 用来表示AppBar的显示状态
+                      ),
+                      iconSize: iconSize,
+                      tooltip: '显示/隐藏标题栏',
+                      onPressed: _toggleAppBar
                     ),
-                  IconButton(
-                    icon: Icon(Icons.add_circle_outline),
-                    iconSize: iconSize,
-                    onPressed: _increaseTextSize,
-                    tooltip: '增加时间文字大小',
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.remove_circle_outline),
-                    iconSize: iconSize,
-                    onPressed: _decreaseTextSize,
-                    tooltip: '减少时间文字大小',
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      _displayCurrentTime ? Icons.access_time_outlined : Icons.timer_outlined, // 使用条件图标来指示时间类型
-                    ),
-                    onPressed: _toggleDisplayTime, // 切换显示时间类型
-                    iconSize: iconSize, // 可以自定义图标大小
-                    tooltip: '定时器/时钟', // 提供一个工具提示
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      _showAppBar ? Icons.visibility_off_outlined : Icons.visibility_outlined, // 用来表示AppBar的显示状态
-                    ),
-                    iconSize: iconSize,
-                    tooltip: '显示/隐藏标题栏',
-                    onPressed: _toggleAppBar
-                  ),
-                  if (!_isRunning && _duration.inSeconds == 0)
-                    IconButton(
-                      icon: Icon(Icons.restore_outlined),
-                      onPressed: () {
-                        setState(() {
-                          _duration = widget.duration;
-                        });
-                      },
-                      iconSize: 36, // 可以自定义图标大小
-                      color: Colors.red, // Reset 按钮的颜色是红色
-                      tooltip: '重置', // 提供一个工具提示
-                    ),
-                ],
-              ),
-            ],
+                    if (!_displayCurrentTime && !_isRunning && _duration.inSeconds == 0)
+                      IconButton(
+                        icon: Icon(Icons.restore_outlined),
+                        onPressed: () {
+                          setState(() {
+                            _duration = widget.duration;
+                          });
+                        },
+                        iconSize: 36, // 可以自定义图标大小
+                        color: Colors.red, // Reset 按钮的颜色是红色
+                        tooltip: '重置', // 提供一个工具提示
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       )
