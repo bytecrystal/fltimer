@@ -68,12 +68,5 @@ class _MyAppState extends State<MyApp> with WindowListener {
           home: const TimerScreen()
       ),
     );
-    // return MaterialApp(
-    //     title: 'Digital Clock',
-    //     theme: ThemeData(
-    //     primarySwatch: Colors.blue,
-    // ),
-    // // home: ClockScreen(),
-    // home: TimerScreen(key: const Key("Timer"), duration: Duration(minutes: 30))
   }
 }

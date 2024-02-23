@@ -21,7 +21,7 @@ class ColorPickerDialog extends StatelessWidget {
         child: ColorPicker(
           pickerColor: initialColor,
           onColorChanged: onColorChanged,
-          colorPickerWidth: 300.0,
+          colorPickerWidth: 80.0,
         ),
       ),
       actions: <Widget>[
