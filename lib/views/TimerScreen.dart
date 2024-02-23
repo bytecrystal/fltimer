@@ -330,7 +330,8 @@ class _TimerScreenState extends State<TimerScreen> {
                     PopupMenuItem<Color>(
                       value: Colors.red,
                       onTap: () {
-                        SystemNavigator.pop(); // 调用此方法关闭应用程序
+                        // SystemNavigator.pop(); // 调用此方法关闭应用程序
+                        windowManager.close();
                       },
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
