@@ -24,15 +24,33 @@ class _TimerScreenState extends State<TimerScreen> {
   bool isEditing = false;
   FocusNode focusNode = FocusNode();
   Offset _tapPosition = Offset.zero; // 初始化为零偏移
-  bool _showAppBar = true; // 默认设置为显示AppBar
+  bool _showAppBar = true; // 默认显示AppBar
   double _textSize = 80.0; // 初始文本大小
   final double _minTextSize = 20.0; // 最小文本大小
   final double _maxTextSize = 200.0; // 最大文本大小
+  bool _displayCurrentTime = false;
+
+
+  void _toggleDisplayTime() {
+    setState(() {
+      _displayCurrentTime = !_displayCurrentTime;
+      _saveDisplayCurrentTime(_displayCurrentTime);
+
+      if (_displayCurrentTime) {
+        // 如果显示系统时间，设置一个新的定时器，每秒更新时间
+        _timer?.cancel(); // 取消之前的定时器，因为我们现在只是更新系统时间
+        _isRunning = false;
+        _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {}));
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
 
   void _increaseTextSize() {
     setState(() {
       if (_textSize < _maxTextSize) {
-        _textSize += 2; // 举例增加大小，每次增加2pt
+        _textSize += 2; // 增加大小，每次增加2pt
         _saveTextSize(_textSize);
       }
     });
@@ -41,7 +59,7 @@ class _TimerScreenState extends State<TimerScreen> {
   void _decreaseTextSize() {
     setState(() {
       if (_textSize > _minTextSize) {
-        _textSize -= 2; // 举例减小大小，每次减少2pt
+        _textSize -= 2; // 减小大小，每次减少2pt
         _saveTextSize(_textSize);
       }
     });
@@ -87,6 +105,23 @@ class _TimerScreenState extends State<TimerScreen> {
     });
   }
 
+  Future<void> _loadDisplayCurrentTime() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      if (prefs.getBool('displayCurrentTime') != null) {
+        _displayCurrentTime = prefs.getBool('displayCurrentTime')!;
+        if (_displayCurrentTime) {
+          // 如果显示系统时间，设置一个新的定时器，每秒更新时间
+          _timer?.cancel(); // 取消之前的定时器，因为我们现在只是更新系统时间
+          _isRunning = false;
+          _timer = Timer.periodic(Duration(seconds: 1), (Timer t) => setState(() {}));
+        } else {
+          _timer?.cancel();
+        }
+      }
+    });
+  }
+
   // 将颜色保存到 Shared Preferences
   Future<void> _saveColor(Color color) async {
     final prefs = await SharedPreferences.getInstance();
@@ -107,6 +142,11 @@ class _TimerScreenState extends State<TimerScreen> {
   Future<void> _saveShowAppBar(bool showAppBar) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showAppBar', showAppBar);
+  }
+
+  Future<void> _saveDisplayCurrentTime(bool displayCurrentTime) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('displayCurrentTime', displayCurrentTime);
   }
 
 
@@ -179,6 +219,7 @@ class _TimerScreenState extends State<TimerScreen> {
     _loadTitleText(); // 加载标题文本
     _loadTextSize(); // 加载时间文本大小
     _loadShowAppBar(); // 加载是否展示AppBar
+    _loadDisplayCurrentTime(); // 加载是否展示当前时间
     _changeWindowSize(_showAppBar);
     // 添加焦点变化的监听器
     focusNode.addListener(_handleFocusChange);
@@ -245,10 +286,14 @@ class _TimerScreenState extends State<TimerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 获取当前系统时间，移至此处以确保它在_build方法中动态更新
+    final now = DateTime.now();
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(_duration.inHours);
-    final minutes = twoDigits(_duration.inMinutes.remainder(60));
-    final seconds = twoDigits(_duration.inSeconds.remainder(60));
+    final hours = twoDigits(_displayCurrentTime ? now.hour : _duration.inHours);
+    final minutes = twoDigits(_displayCurrentTime ? now.minute : _duration.inMinutes.remainder(60));
+    final seconds = twoDigits(_displayCurrentTime ? now.second : _duration.inSeconds.remainder(60));
+
+    double iconSize = 30;
 
     return Listener(
       onPointerDown: (PointerDownEvent event) => windowManager.startDragging(), // 当鼠标按下时开始拖拽
@@ -351,41 +396,54 @@ class _TimerScreenState extends State<TimerScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (_duration.inSeconds > 0)
+                  if (!_displayCurrentTime && _duration.inSeconds > 0)
                     IconButton(
-                      icon: Icon(_isRunning ? Icons.pause_circle_outline : Icons.play_arrow),
+                      icon: Icon(_isRunning ? Icons.pause_circle_outline : Icons.play_circle_outline),
                       onPressed: _toggleTimer,
-                      iconSize: 36, // 可以自定义图标大小
+                      iconSize: iconSize, // 可以自定义图标大小
                       tooltip: '开始/暂停', // 提供一个工具提示
                     ),
                   // 定义按钮来选择颜色
                   IconButton(
-                    icon: Icon(Icons.color_lens),
+                    icon: Icon(Icons.color_lens_outlined),
                     onPressed: _pickColor,
-                    iconSize: 36,
+                    iconSize: iconSize,
                     tooltip: '选择颜色', // 提供一个工具提示
                   ),
                   // SizedBox(height: 20,),
-                  IconButton(
-                    icon: Icon(Icons.timer_outlined),
-                    onPressed: _showTimePickerDialog,
-                    iconSize: 36, // 可以自定义图标大小
-                    tooltip: '选择时间', // 提供一个工具提示
-                  ),
+                  if (!_displayCurrentTime)
+                    IconButton(
+                      icon: Icon(Icons.settings_outlined),
+                      onPressed: _showTimePickerDialog,
+                      iconSize: iconSize, // 可以自定义图标大小
+                      tooltip: '选择时间', // 提供一个工具提示
+                    ),
                   IconButton(
                     icon: Icon(Icons.add_circle_outline),
+                    iconSize: iconSize,
                     onPressed: _increaseTextSize,
                     tooltip: '增加时间文字大小',
                   ),
                   IconButton(
                     icon: Icon(Icons.remove_circle_outline),
+                    iconSize: iconSize,
                     onPressed: _decreaseTextSize,
                     tooltip: '减少时间文字大小',
                   ),
                   IconButton(
                     icon: Icon(
+                      _displayCurrentTime ? Icons.access_time_outlined : Icons.timer_outlined, // 使用条件图标来指示时间类型
+                    ),
+                    onPressed: _toggleDisplayTime, // 切换显示时间类型
+                    iconSize: iconSize, // 可以自定义图标大小
+                    tooltip: '定时器/时钟', // 提供一个工具提示
+                  ),
+                  IconButton(
+                    icon: Icon(
                       _showAppBar ? Icons.visibility_off_outlined : Icons.visibility_outlined, // 用来表示AppBar的显示状态
                     ),
+                    iconSize: iconSize,
+                    tooltip: '显示/隐藏标题栏',
                     onPressed: _toggleAppBar
                   ),
                   if (!_isRunning && _duration.inSeconds == 0)
