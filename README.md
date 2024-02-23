@@ -8,9 +8,9 @@
 2.flutter build xxx (你的当前所用的系统：linux / windows / macos)
 
 ## 演示
-![QQ20240223-174241.png](https://img2.imgtp.com/2024/02/23/CATz2BDe.png)
-![QQ20240223-174312.png](https://img2.imgtp.com/2024/02/23/37WmZo6L.png)
-![QQ20240223-174241.png](https://img2.imgtp.com/2024/02/23/CATz2BDe.png)
+![QQ20240223-175009.png](https://img2.imgtp.com/2024/02/23/8BIAIAYx.png)
+![QQ20240223-175137.png](https://img2.imgtp.com/2024/02/23/bTAsiEnx.png)
+![QQ20240223-175206.png](https://img2.imgtp.com/2024/02/23/vk8T0oAW.png)
 
 ## 使用
 - 双击标题栏可以更改标题
