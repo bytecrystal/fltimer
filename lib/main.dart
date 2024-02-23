@@ -1,22 +1,16 @@
-import 'package:flipclock/views/TimerScreen.dart';
+import 'package:flipclock/service/preferences_service.dart';
+import 'package:flipclock/state/time_info.dart';
+import 'package:flipclock/views/timer_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
-
-Future<bool> _loadShowAppBar() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  bool? showAppBar = prefs.getBool('showAppBar');
-  if (showAppBar == null) {
-    return false;
-  }
-  return showAppBar;
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
+  PreferencesService prefs = PreferencesService();
 
-  bool showAppBar = await _loadShowAppBar();
+  bool showAppBar = await prefs.loadShowAppBar();
   double height = 280;
   if (!showAppBar) {
     height = height - kToolbarHeight;
@@ -24,11 +18,10 @@ void main() async {
 
   WindowOptions windowOptions = WindowOptions(
     size: Size(580, height),
-    // backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
     // minimumSize: Size(500, 160),
-    maximumSize: Size(600, 280),
+    maximumSize: const Size(600, 280),
   );
   // 确保窗口创建后再显示
 
@@ -38,10 +31,12 @@ void main() async {
     await windowManager.setAlwaysOnTop(true);
   });
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -62,13 +57,23 @@ class _MyAppState extends State<MyApp> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Digital Clock',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return ChangeNotifierProvider(
+      create: (context) => TimerInfo(const Duration(minutes: 30)),
+      child: MaterialApp(
+          title: 'Digital Clock',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          // home: ClockScreen(),
+          home: const TimerScreen()
       ),
-      // home: ClockScreen(),
-      home: TimerScreen(key: const Key("Timer"), duration: Duration(minutes: 30))
     );
+    // return MaterialApp(
+    //     title: 'Digital Clock',
+    //     theme: ThemeData(
+    //     primarySwatch: Colors.blue,
+    // ),
+    // // home: ClockScreen(),
+    // home: TimerScreen(key: const Key("Timer"), duration: Duration(minutes: 30))
   }
 }

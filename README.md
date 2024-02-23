@@ -1,16 +1,14 @@
 # flipclock
 
-A new Flutter project.
+一个用flutter实现简单的桌面端定时器和时钟应用
 
-## Getting Started
+## 首先
+1.git clone https://github.com/bytecrystal/fltimer.git
 
-This project is a starting point for a Flutter application.
+2.flutter build xxx (你的当前所用的系统：linux / windows / macos)
 
-A few resources to get you started if this is your first Flutter project:
+## 使用
+- 双击标题栏可以更改标题
+- 双击下面空白区域可以隐藏下方工具栏
+- 可以在下方选择切换定时器形式或者时钟形式
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
