@@ -1,11 +1,11 @@
-import 'package:flipclock/views/top_custom_app_bar.dart';
+import 'package:flipclock/service/local_storage_service.dart';
+import 'package:flipclock/state/app_state.dart';
+import 'package:flipclock/views/icon_bar.dart';
+import 'package:flipclock/views/my_app_bar.dart';
+import 'package:flipclock/views/widget/clock/flip_clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
-
-import '../functions.dart';
-import '../state/time_info.dart';
-import 'bottom_icon_buttons.dart';
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen({super.key});
@@ -18,72 +18,66 @@ class TimerScreen extends StatefulWidget {
 class TimerScreenState extends State<TimerScreen> {
   double iconSize = 30;
 
-  // 从 Shared Preferences 读取配置
-  void _loadPreferences() async {
-    TimerInfo timerInfo = Provider.of<TimerInfo>(context, listen: false);
-    timerInfo.loadColor();
-    timerInfo.loadTitleText();
-    timerInfo.loadTextSize();
-    timerInfo.loadShowAppBar();
-    timerInfo.loadDisplayCurrentTime();
-  }
-
   @override
   void initState() {
     super.initState();
-    _loadPreferences();
-    TimerInfo timerInfo = Provider.of<TimerInfo>(context, listen: false);
-    timerInfo.updateWindowSizeWithAppBar();
-    // 添加焦点变化的监听器
-    timerInfo.focusNode.addListener(timerInfo.handleFocusChange);
   }
 
   @override
   void dispose() {
-    // if (_timer != null) {
-    //   _timer!.cancel();
-    // }
-    TimerInfo timerInfo = Provider.of<TimerInfo>(context, listen: false);
-    timerInfo.focusNode.removeListener(timerInfo.handleFocusChange);
-    timerInfo.focusNode.dispose();
-    timerInfo.controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TimerInfo>(builder: (context, timerInfo, child) {
-      String formatTimeStr =
-         formatTime(timerInfo.duration, timerInfo.displayCurrentTime);
-
+    return Consumer<AppState>(builder: (context, appState, child) {
+      Color clockBgColor = Color(appState.userConfig.clock.bgColor);
+      Color clockDigitColor = Color(appState.userConfig.clock.color);
       return Listener(
           onPointerDown: (PointerDownEvent event) =>
               windowManager.startDragging(), // 当鼠标按下时开始拖拽
           child: Scaffold(
             // 创建一个可拖动的自定义标题栏
-            appBar: timerInfo.showAppBar
+            appBar: appState.userConfig.showHeader
                 ? PreferredSize(
                     preferredSize: const Size.fromHeight(kToolbarHeight),
-                    child: TopCustomAppBar(timerInfo: timerInfo,)
+                    child: MyAppBar()
                   )
                 : null,
             body: GestureDetector(
-              onDoubleTap: timerInfo.toggleShowIcons,
+              onDoubleTap: appState.toggleShowIconButton,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                      key: timerInfo.timeWidgetKey,
-                      formatTimeStr,
-                      style: TextStyle(
-                          fontSize: timerInfo.textSize,
-                          fontWeight: FontWeight.bold,
-                          color: timerInfo.timeColor.withOpacity(0.8)),
+                Container(
+                alignment: Alignment.center,
+                    // key: timerInfo.timeWidgetKey,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
                     ),
-                    // SizedBox(height: 5),
-                    if (timerInfo.showIcons)
-                      BottomIconButtons(iconSize: iconSize, timerInfo: timerInfo)
+                    padding: const EdgeInsets.all(10.0),
+                    child: FlipClock(
+                      // digitSize: itemWidth + ((itemHeight - itemWidth).abs() / 2),
+                      digitSize: 54,
+                      width: 54,
+                      height: 84,
+                      digitColor: clockDigitColor,
+                      separatorWidth: 40.0,
+                      backgroundColor: clockBgColor,
+                      separatorColor: clockBgColor,
+                      borderColor: clockBgColor,
+                      hingeColor: Colors.grey[300],
+                      showSeconds: true,
+                      showBorder: true,
+                      hingeWidth: 0.8,
+                      borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                    ),
+                  ),
+                    SizedBox(height: 5),
+                    if (appState.userConfig.showIconButton)
+                      IconBar(iconSize: iconSize)
                   ],
                 ),
               ),

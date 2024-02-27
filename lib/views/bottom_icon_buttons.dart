@@ -1,5 +1,7 @@
 
+import 'package:flipclock/views/settings_page.dart';
 import 'package:flutter/material.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../functions.dart';
 import '../state/time_info.dart';
@@ -15,6 +17,8 @@ class BottomIconButtons extends StatelessWidget {
   });
 
 
+
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -26,7 +30,11 @@ class BottomIconButtons extends StatelessWidget {
             icon: Icon(timerInfo.isRunning
                 ? Icons.pause_circle_outline
                 : Icons.play_circle_outline),
-            onPressed: timerInfo.toggleTimer,
+            onPressed: () => {
+              timerInfo.toggleTimer(() {
+                print("定时器结束");
+              })
+            },
             iconSize: iconSize, // 可以自定义图标大小
             tooltip: '开始/暂停', // 提供一个工具提示
           ),
@@ -42,28 +50,35 @@ class BottomIconButtons extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => {
-              showTimePickerDialog(
-                context: context,
-                initialDuration: timerInfo.duration,
-                onDurationChanged: (value) {
-                  timerInfo.setDuration(value);
-                },
+              timerInfo.saveCurrentWindowSize(),
+              // 设置窗口大小
+              windowManager.setSize(const Size(540, 900), animate: true),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
               )
+              // showTimePickerDialog(
+              //   context: context,
+              //   initialDuration: timerInfo.duration,
+              //   onDurationChanged: (value) {
+              //     timerInfo.setDuration(value);
+              //   },
+              // )
             },
             iconSize: iconSize, // 可以自定义图标大小
-            tooltip: '选择时间', // 提供一个工具提示
+            tooltip: '设置', // 提供一个工具提示
           ),
         IconButton(
           icon: const Icon(Icons.add_circle_outline),
           iconSize: iconSize,
-          onPressed: timerInfo.increaseTextSize,
-          tooltip: '增加时间文字大小',
+          onPressed: timerInfo.increaseSize,
+          tooltip: '增加大小',
         ),
         IconButton(
           icon: const Icon(Icons.remove_circle_outline),
           iconSize: iconSize,
-          onPressed: timerInfo.decreaseTextSize,
-          tooltip: '减少时间文字大小',
+          onPressed: timerInfo.decreaseSize,
+          tooltip: '减少大小',
         ),
         IconButton(
           icon: Icon(
@@ -86,7 +101,6 @@ class BottomIconButtons extends StatelessWidget {
             tooltip: '显示/隐藏标题栏',
             onPressed: timerInfo.toggleAppBar),
         if (!timerInfo.displayCurrentTime &&
-            !timerInfo.isRunning &&
             timerInfo.duration.inSeconds == 0)
           IconButton(
             icon: const Icon(Icons.restore_outlined),

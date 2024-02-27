@@ -1,7 +1,9 @@
+import 'package:flipclock/service/local_storage_service.dart';
 import 'package:flipclock/service/preferences_service.dart';
-import 'package:flipclock/state/time_info.dart';
+import 'package:flipclock/state/app_state.dart';
 import 'package:flipclock/views/timer_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -21,7 +23,7 @@ void main() async {
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
     // minimumSize: Size(500, 160),
-    maximumSize: const Size(600, 280),
+    // maximumSize: const Size(600, 280),
   );
   // 确保窗口创建后再显示
 
@@ -30,8 +32,9 @@ void main() async {
     await windowManager.focus();
     await windowManager.setAlwaysOnTop(true);
   });
-
-  runApp(const MyApp());
+  // 初始化本地存储
+  await LocalStorageService().init();
+  runApp(Phoenix(child: const MyApp()));
 }
 
 class MyApp extends StatefulWidget {
@@ -58,7 +61,7 @@ class _MyAppState extends State<MyApp> with WindowListener {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => TimerInfo(const Duration(minutes: 30)),
+      create: (context) => AppState(const Duration(minutes: 30)),
       child: MaterialApp(
           title: 'Digital Clock',
           theme: ThemeData(

@@ -6,16 +6,12 @@ import 'package:window_manager/window_manager.dart';
 import '../service/preferences_service.dart';
 import '../views/color_picker_dialog.dart';
 
-
 class TimerInfo extends ChangeNotifier {
   Timer? _timer;
   Duration _duration;
   bool _isRunning = false;
   Color _timeColor = Colors.black;
   bool _isEditing = false;
-  double _textSize = 80.0; // 初始文本大小
-  final double _minTextSize = 20.0; // 最小文本大小
-  final double _maxTextSize = 120.0; // 最大文本大小
   bool _displayCurrentTime = false;
   bool _showIcons = true; // 控制下方所有IconButton显示的状态，默认为true
   double iconSize = 30;
@@ -24,11 +20,19 @@ class TimerInfo extends ChangeNotifier {
   final GlobalKey _timeWidgetKey = GlobalKey();
   bool _showAppBar = true; // 默认显示AppBar
   final FocusNode _focusNode = FocusNode();
-
+  StreamController<Duration>? _streamController = StreamController<Duration>.broadcast();
+  Duration? _remainingDuration;
+  DateTime? _pauseTime;
+  double _timeWidth = 54.0;
+  double _timeHeight=  84.0;
+  double _windowWidth = 600;
+  double _windowHeight = 280;
 
   final PreferencesService _prefs = PreferencesService();
 
   TimerInfo(this._duration);
+
+  Timer? get timer => _timer;
 
   Duration get duration => _duration;
 
@@ -50,45 +54,104 @@ class TimerInfo extends ChangeNotifier {
 
   bool get isEditing => _isEditing;
 
-  double get textSize => _textSize;
+  double get timeWidth => _timeWidth;
+
+  double get timeHeight => _timeHeight;
 
   GlobalKey get timeWidgetKey => _timeWidgetKey;
 
+  double get windowWidth => _windowWidth;
 
-  // A method to toggle the timer
-  void toggleTimer() {
-    if (_timer != null && _timer!.isActive) {
-      _timer!.cancel();
+  double get windowHeight => _windowHeight;
+
+  StreamController<Duration>? get streamController => _streamController;
+
+  Stream<Duration> get durationStream => _streamController?.stream.asBroadcastStream() ?? const Stream.empty();
+
+  void setStreamController(StreamController<Duration> streamController) {
+    _streamController = streamController;
+  }
+
+  void toggleTimer(VoidCallback? onDone) {
+    if (!_isRunning) {
+      start(onDone);
     } else {
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+      _pauseTime = DateTime.now(); // 记录暂停时间
+      stop();
     }
-    _isRunning = !_isRunning;
+    notifyListeners();
+  }
+
+  void start(VoidCallback? onDone) {
+    // 如果是第一次开始或者从暂停恢复，设置剩余时间
+    if (_remainingDuration == null || _remainingDuration!.inSeconds == 0) {
+      _remainingDuration = _duration;
+    } else if (_pauseTime != null) {
+      final pauseDuration = DateTime.now().difference(_pauseTime!);
+      _remainingDuration = _remainingDuration! - pauseDuration;
+    }
+
+    final endTime = DateTime.now().add(_remainingDuration!);
+    var done = false;
+
+    _timer?.cancel(); // 取消之前的Timer
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      final now = DateTime.now();
+      if (now.isBefore(endTime)) {
+        _remainingDuration = endTime.difference(now);
+        _streamController?.add(_remainingDuration!);
+      } else {
+        if (!done && onDone != null) {
+          onDone();
+        }
+        done = true;
+        _streamController?.add(Duration.zero);
+        stop(); // 倒计时完成，停止Timer
+        _remainingDuration = Duration.zero; // 重置剩余时间
+      }
+    });
+
+    _pauseTime = null; // 清除暂停时间
+    _isRunning = true;
+  }
+
+  void stop() {
+    _timer?.cancel();
+    _isRunning = false;
+  }
+
+  void increaseSize() {
+    _timeWidth += 3;
+    _timeHeight += 3;
+
+
+    _prefs.saveTimeWidthAndHeight(_timeWidth, _timeHeight);
+    notifyListeners();
+  }
+
+
+  void decreaseSize() {
+    _timeWidth -= 3;
+    _timeHeight -= 3;
+
+    _prefs.saveTimeWidthAndHeight(_timeWidth, _timeHeight);
     notifyListeners();
   }
 
   void toggleDisplayTime() {
       _displayCurrentTime = !_displayCurrentTime;
       _prefs.saveDisplayCurrentTime(_displayCurrentTime);
-
-      if (_displayCurrentTime) {
-        // 如果显示系统时间，设置一个新的定时器，每秒更新时间
-        _timer?.cancel(); // 取消之前的定时器，因为我们现在只是更新系统时间
-        _isRunning = false;
-        _timer =
-            Timer.periodic(const Duration(seconds: 1), (Timer t) => notifyListeners());
-      } else {
-        _timer?.cancel();
+      if (!_displayCurrentTime) {
+        start(null);
       }
       notifyListeners();
   }
-
 
 
   void setEditing(bool value) {
     _isEditing = value;
     notifyListeners();
   }
-
 
   void setTapPosition(Offset value) {
     _tapPosition = value;
@@ -100,15 +163,6 @@ class TimerInfo extends ChangeNotifier {
     notifyListeners();
   }
 
-  // A method update the time
-  void _updateTime() {
-    if (_duration.inSeconds == 0) {
-      _timer?.cancel();
-    } else {
-      _duration = _duration - const Duration(seconds: 1);
-    }
-    notifyListeners();
-  }
 
   void loadColor() async {
     _timeColor = await _prefs.loadTimeColor();
@@ -120,26 +174,29 @@ class TimerInfo extends ChangeNotifier {
     notifyListeners();
   }
 
-  void loadTextSize() async {
-    _textSize = await _prefs.loadTextSize();
-    notifyListeners();
-  }
-
   void loadShowAppBar() async {
     _showAppBar = await _prefs.loadShowAppBar();
     notifyListeners();
   }
 
+  void loadTimeWidthAndHeight() async {
+    _timeWidth = await _prefs.loadTimeWidth();
+    _timeHeight = await _prefs.loadTimeHeight();
+    notifyListeners();
+  }
+
+  void saveCurrentWindowSize() async {
+    Size size = await windowManager.getSize();
+    // 获取当前窗口界限
+    // Rect bounds = await windowManager.getBounds();
+    await _prefs.saveWindowSize(size.width, size.height);
+  }
+
 
   void loadDisplayCurrentTime() async {
     _displayCurrentTime = await _prefs.loadDisplayCurrentTime();
-    if (_displayCurrentTime) {
-      // 如果显示系统时间，设置一个新的定时器，每秒更新时间
-      _timer?.cancel(); // 取消之前的定时器，因为我们现在只是更新系统时间
-      _isRunning = false;
-      _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => notifyListeners());
-    } else {
-      _timer?.cancel();
+    if (!_displayCurrentTime) {
+      start(null);
     }
     notifyListeners();
   }
@@ -153,21 +210,11 @@ class TimerInfo extends ChangeNotifier {
     notifyListeners();
   }
 
-
-  void increaseTextSize() {
-    if (_textSize < _maxTextSize) {
-      _textSize += 2; // 增加大小，每次增加2pt
-      _prefs.saveTextSize(_textSize);
-    }
+  void updateWindowSize() async {
+    _windowWidth = await _prefs.loadWindowWidth();
+    _windowHeight = await _prefs.loadWindowHeight();
     notifyListeners();
-  }
-
-  void decreaseTextSize() {
-    if (_textSize > _minTextSize) {
-      _textSize -= 2; // 减小大小，每次减少2pt
-      _prefs.saveTextSize(_textSize);
-    }
-    notifyListeners();
+    windowManager.setSize(Size(_windowWidth, _windowHeight));
   }
 
   // Remember to dispose of the timer
@@ -192,10 +239,10 @@ class TimerInfo extends ChangeNotifier {
     if (renderBox != null) {
       if (!_showIcons) {
         windowManager.setSize(Size(
-            renderBox.paintBounds.width + 10,
+            renderBox.paintBounds.width + 5,
             _showAppBar
-                ? renderBox.paintBounds.height + kToolbarHeight
-                : renderBox.paintBounds.height));
+                ? renderBox.paintBounds.height + 5 + kToolbarHeight
+                : renderBox.paintBounds.height + 5));
       }
     }
     double height = 280;
