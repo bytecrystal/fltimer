@@ -57,10 +57,10 @@ class TimerScreenState extends State<TimerScreen> {
                 alignment: Alignment.center,
                     key: _timeContainerKey,
                     decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                      color: Colors.blue,
+                      // borderRadius: BorderRadius.all(Radius.circular(10.0)),
                     ),
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(5.0),
                     child: FlipClock(
                       digitSize: appState.userConfig.clock.digitSize,
                       width: appState.userConfig.clock.cardWidth,
@@ -74,10 +74,9 @@ class TimerScreenState extends State<TimerScreen> {
                       showSeconds: true,
                       showBorder: true,
                       hingeWidth: 0.8,
-                      borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                      // borderRadius: const BorderRadius.all(Radius.circular(8.0)),
                     ),
                   ),
-                    SizedBox(height: 5),
                     if (appState.userConfig.showIconButton)
                       IconBar(iconSize: iconSize)
                   ],

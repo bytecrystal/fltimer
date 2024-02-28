@@ -77,8 +77,8 @@ class AppState extends ChangeNotifier {
     if (renderBox != null) {
       if (!userConfig.showIconButton) {
         width = renderBox.paintBounds.width;
-        height = renderBox.paintBounds.height + 5.2;
-        width = userConfig.showHeader ? width : width - 40;
+        height = renderBox.paintBounds.height + 1;
+        width = userConfig.showHeader ? width : width - 58.0;
         updateWindowSize(width, height);
         windowManager.setSize(Size(
             width,
