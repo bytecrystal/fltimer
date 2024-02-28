@@ -1,4 +1,5 @@
 import 'package:flipclock/state/app_state.dart';
+import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -82,8 +83,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   '背景颜色',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    // fontWeight: FontWeight.bold,
+                    // color: Colors.black87,
                   )
               ),
               SizedBox(height: 5,),
@@ -131,8 +132,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   '文字颜色',
                   style: TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    // fontWeight: FontWeight.bold,
+                    // color: Colors.black87,
                   )
               ),
               SizedBox(height: 5,),
@@ -171,6 +172,30 @@ class _SettingsPageState extends State<SettingsPage> {
               )
             ],
           ),
+        ]
+    );
+  }
+
+  Widget _buildSliderRow({required String label, required double value, required double min, required double max, required Function(double) callback}) {
+    return Row(
+        children: [
+          Text(label, style: TextStyle(
+            fontSize: 18,
+          ),),
+          SizedBox(width: 10,),
+          Expanded(
+              child: Slider(
+                value: value,
+                label: value.round().toString(),
+                divisions: max.round() - min.round(),
+                min: min,
+                max: max,
+                onChanged: (double value) {
+                  callback(value);
+                },
+              )
+          ),
+          Text(value.round().toString())
         ]
     );
   }
@@ -261,38 +286,39 @@ class _SettingsPageState extends State<SettingsPage> {
                   SizedBox(height: 20,),
                   _buildCard(
                       child: _buildCardContainer(
-                          child: Row(
+                          child: Column(
                             children: [
-                              Expanded(
-                                child: IconButton(
-                                  onPressed: () => {},
-                                  icon: Icon(Icons.remove, color: Colors.black),
-                                ),
+                              _buildSliderRow(
+                                  label: '卡片宽度',
+                                  value: appState.userConfig.clock.cardWidth,
+                                  min: 30,
+                                  max: 70,
+                                  callback: (value) {
+                                    appState.updateClockCardWidth(value);
+                                  }
                               ),
-                              Expanded(
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    labelText: '', // 输入框上方的标签文本
-                                    hintText: '', // 占位符文本
-                                  ),
-                                  keyboardType: TextInputType.text, // 弹出文本类型的键盘
-                                  obscureText: false, // 不隐藏输入（不用于密码类型）
-                                  onChanged: (value) {
-                                    // 当输入内容变化时调用
-                                    print('Input: $value');
-                                  },
-                                ),
+                              _buildSliderRow(
+                                  label: '卡片高度',
+                                  value: appState.userConfig.clock.cardHeight,
+                                  min: 30,
+                                  max: 100,
+                                  callback: (value) {
+                                    appState.updateClockCardHeight(value);
+                                  }
                               ),
-                              Expanded(
-                                child: IconButton(
-                                  onPressed: () => {},
-                                  icon: Icon(Icons.add, color: Colors.black),
-                                ),
+                              _buildSliderRow(
+                                  label: '数字大小',
+                                  value: appState.userConfig.clock.digitSize,
+                                  min: 30,
+                                  max: 80,
+                                  callback: (value) {
+                                    appState.updateClockDigitSize(value);
+                                  }
                               ),
                             ],
                           ),
                           title: '时钟大小',
-                          height: 150
+                          height: 300
                       )
                   ),
                   SizedBox(height: 20,),

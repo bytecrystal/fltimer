@@ -62,10 +62,9 @@ class TimerScreenState extends State<TimerScreen> {
                     ),
                     padding: const EdgeInsets.all(10.0),
                     child: FlipClock(
-                      // digitSize: itemWidth + ((itemHeight - itemWidth).abs() / 2),
-                      digitSize: 54,
-                      width: 54,
-                      height: 84,
+                      digitSize: appState.userConfig.clock.digitSize,
+                      width: appState.userConfig.clock.cardWidth,
+                      height: appState.userConfig.clock.cardHeight,
                       digitColor: clockDigitColor,
                       separatorWidth: 40.0,
                       backgroundColor: clockBgColor,

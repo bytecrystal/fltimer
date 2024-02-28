@@ -101,7 +101,7 @@ class IconBar extends StatelessWidget {
             ),
             iconSize: iconSize,
             tooltip: '显示/隐藏标题栏',
-            onPressed: appState.toggleShowHeader),
+            onPressed: appState.toggleWindowSizeWhereShowHeader),
         // if (!timerInfo.displayCurrentTime &&
         //     timerInfo.duration.inSeconds == 0)
         //   IconButton(

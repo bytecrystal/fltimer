@@ -30,6 +30,24 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateClockCardWidth(double value) {
+    userConfig.clock.cardWidth = value;
+    LocalStorageService().setUserConfig(userConfig);
+    notifyListeners();
+  }
+
+  void updateClockCardHeight(double value) {
+    userConfig.clock.cardHeight = value;
+    LocalStorageService().setUserConfig(userConfig);
+    notifyListeners();
+  }
+
+  void updateClockDigitSize(double value) {
+    userConfig.clock.digitSize = value;
+    LocalStorageService().setUserConfig(userConfig);
+    notifyListeners();
+  }
+
   void updateBgColor({required String type, required int bgColor}) {
     if (type == 'clock') {
       userConfig.clock.bgColor = bgColor;
@@ -59,7 +77,8 @@ class AppState extends ChangeNotifier {
     if (renderBox != null) {
       if (!userConfig.showIconButton) {
         width = renderBox.paintBounds.width;
-        height = renderBox.paintBounds.height + 6;
+        height = renderBox.paintBounds.height + 5.2;
+        width = userConfig.showHeader ? width : width - 40;
         updateWindowSize(width, height);
         windowManager.setSize(Size(
             width,
@@ -77,6 +96,19 @@ class AppState extends ChangeNotifier {
       windowManager.setSize(Size(width, height));
     }
     notifyListeners();
+  }
+
+  void toggleWindowSizeWhereShowHeader() {
+    toggleShowHeader();
+    double height = userConfig.windowHeight;
+    if (!userConfig.showHeader) {
+      height = height - kToolbarHeight;
+    } else {
+      height = height + kToolbarHeight;
+    }
+    double width = userConfig.windowWidth;
+    updateWindowSize(width, height);
+    windowManager.setSize(Size(width, height));
   }
 
   void updateWindowSize(double width, double height) {
