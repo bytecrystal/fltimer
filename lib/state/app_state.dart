@@ -50,6 +50,35 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleWindowSizeWhereDoubleClick(GlobalKey timeWidgetKey) {
+    final RenderObject? renderBox =
+    timeWidgetKey.currentContext?.findRenderObject();
+    double width = 580;
+    double height = 280;
+    toggleShowIconButton();
+    if (renderBox != null) {
+      if (!userConfig.showIconButton) {
+        width = renderBox.paintBounds.width;
+        height = renderBox.paintBounds.height + 6;
+        updateWindowSize(width, height);
+        windowManager.setSize(Size(
+            width,
+           userConfig.showHeader
+                ? height + kToolbarHeight
+                : height));
+      }
+    }
+    if (userConfig.showIconButton) {
+      if (!userConfig.showHeader) {
+        height = height - kToolbarHeight;
+      }
+      width = 600;
+      updateWindowSize(width, height);
+      windowManager.setSize(Size(width, height));
+    }
+    notifyListeners();
+  }
+
   void updateWindowSize(double width, double height) {
     userConfig.windowWidth = width;
     userConfig.windowHeight = height;

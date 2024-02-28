@@ -17,6 +17,7 @@ class TimerScreen extends StatefulWidget {
 
 class TimerScreenState extends State<TimerScreen> {
   double iconSize = 30;
+  final GlobalKey _timeContainerKey = GlobalKey();
 
   @override
   void initState() {
@@ -45,14 +46,16 @@ class TimerScreenState extends State<TimerScreen> {
                   )
                 : null,
             body: GestureDetector(
-              onDoubleTap: appState.toggleShowIconButton,
+              onDoubleTap: () => {
+                appState.toggleWindowSizeWhereDoubleClick(_timeContainerKey)
+              },
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                 Container(
                 alignment: Alignment.center,
-                    // key: timerInfo.timeWidgetKey,
+                    key: _timeContainerKey,
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.all(Radius.circular(10.0)),

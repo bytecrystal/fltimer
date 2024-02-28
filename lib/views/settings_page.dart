@@ -14,12 +14,26 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  final FocusNode _focusNode = FocusNode();
+  final FocusNode _keyboardFocus = FocusNode();
   final TextEditingController _controller = TextEditingController();
+  late FocusNode _titleTextFieldFocus;
 
   @override
   void initState() {
+    var appState = Provider.of<AppState>(context, listen: false);
+    _titleTextFieldFocus = FocusNode();
+    _controller.text = appState.userConfig.headTitle.title;
+
+    _titleTextFieldFocus.addListener(() {
+      _handleFocusChange(appState);
+    });
     super.initState();
+  }
+
+  void _handleFocusChange(AppState appState) {
+    if (!_titleTextFieldFocus.hasFocus) {
+      appState.updateHeadTitle(_controller.text);
+    }
   }
 
   Widget _buildCard({ required Widget child}) {
@@ -163,7 +177,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    _focusNode.requestFocus();
+    _keyboardFocus.requestFocus();
     return Listener(
       onPointerDown: (PointerDownEvent event) =>
           windowManager.startDragging(), // 当鼠标按下时开始拖拽
@@ -194,7 +208,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           ),
           body: KeyboardListener(
-            focusNode: _focusNode,
+            focusNode: _keyboardFocus,
             onKeyEvent: (KeyEvent event) {
               // 检查是否是esc键被按下
               if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
@@ -290,17 +304,18 @@ class _SettingsPageState extends State<SettingsPage> {
                                 children: [
                                   Expanded(
                                     child: TextField(
+                                      focusNode: _titleTextFieldFocus,
                                       controller: _controller,
-                                      decoration: InputDecoration(
-                                        labelText: '标题内容', // 输入框上方的标签文本
-                                      ),
+                                      maxLength: 36,
+                                      // decoration: InputDecoration(
+                                        // labelText: '标题内容', // 输入框上方的标签文本
+                                      // ),
                                       keyboardType: TextInputType.text, // 弹出文本类型的键盘
-                                      obscureText: false, // 不隐藏输入（不用于密码类型）
                                     ),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 30,),
+                              // SizedBox(height: 30,),
                               Row(
                                 children: [
                                   _buildColorConfig(appState: appState, type: 'timer')
