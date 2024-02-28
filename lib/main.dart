@@ -8,18 +8,15 @@ import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
+  // 初始化本地存储
+  await LocalStorageService().init();
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
-  PreferencesService prefs = PreferencesService();
 
-  bool showAppBar = await prefs.loadShowAppBar();
-  double height = 280;
-  if (!showAppBar) {
-    height = height - kToolbarHeight;
-  }
-
+  double windowWidth = LocalStorageService().getUserConfig()!.windowWidth;
+  double windowHeight = LocalStorageService().getUserConfig()!.windowHeight;
   WindowOptions windowOptions = WindowOptions(
-    size: Size(580, height),
+    size: Size(windowWidth, windowHeight),
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
     // minimumSize: Size(500, 160),
@@ -32,8 +29,7 @@ void main() async {
     await windowManager.focus();
     await windowManager.setAlwaysOnTop(true);
   });
-  // 初始化本地存储
-  await LocalStorageService().init();
+
   runApp(Phoenix(child: const MyApp()));
 }
 
