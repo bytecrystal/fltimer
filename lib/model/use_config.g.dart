@@ -14,6 +14,7 @@ UserConfig _$UserConfigFromJson(Map<String, dynamic> json) => UserConfig(
       windowHeight: (json['windowHeight'] as num).toDouble(),
       showIconButton: json['showIconButton'] as bool,
       showHeader: json['showHeader'] as bool,
+      appBgColor: json['appBgColor'] as int,
     );
 
 Map<String, dynamic> _$UserConfigToJson(UserConfig instance) =>
@@ -24,6 +25,7 @@ Map<String, dynamic> _$UserConfigToJson(UserConfig instance) =>
       'windowHeight': instance.windowHeight,
       'showIconButton': instance.showIconButton,
       'showHeader': instance.showHeader,
+      'appBgColor': instance.appBgColor,
     };
 
 ClockModel _$ClockModelFromJson(Map<String, dynamic> json) => ClockModel(

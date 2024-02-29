@@ -14,6 +14,8 @@ class UserConfig {
   bool showIconButton;
   bool showHeader;
 
+  int appBgColor = 0xFFFFFFFF;
+
   void setShowHeader(bool showHeader) {
     if (this.showHeader != showHeader) {
       this.showHeader = showHeader;
@@ -34,17 +36,19 @@ class UserConfig {
     required this.windowWidth,
     required this.windowHeight,
     required this.showIconButton,
-    required this.showHeader
+    required this.showHeader,
+    required this.appBgColor
   });
 
   static UserConfig defaultConfig() {
     return UserConfig(
       clock: ClockModel(bgColor: 0xFF000000, color: 0xFFFFFFFF, digitSize: 54.0, cardWidth: 54.0, cardHeight: 84.0),
       headTitle: HeadTitleModel(bgColor: 0xFF000000, color: 0xFFFFFFFF),
-      windowWidth: 580,
+      windowWidth: 585,
       windowHeight: 280,
       showIconButton: true,
-      showHeader: true
+      showHeader: true,
+      appBgColor: 0xFFFFFFFF
     );
   }
 

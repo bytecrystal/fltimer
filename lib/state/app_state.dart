@@ -58,6 +58,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateAppBgColor({required int bgColor}) {
+    userConfig.appBgColor = bgColor;
+    LocalStorageService().setUserConfig(userConfig);
+    notifyListeners();
+  }
+
   void updateColor({required String type, required int color}) {
     if (type == 'clock') {
       userConfig.clock.color = color;
@@ -71,14 +77,14 @@ class AppState extends ChangeNotifier {
   void toggleWindowSizeWhereDoubleClick(GlobalKey timeWidgetKey) {
     final RenderObject? renderBox =
     timeWidgetKey.currentContext?.findRenderObject();
-    double width = 580;
+    double width = 585;
     double height = 280;
     toggleShowIconButton();
     if (renderBox != null) {
       if (!userConfig.showIconButton) {
         width = renderBox.paintBounds.width;
-        height = renderBox.paintBounds.height + 1;
-        width = userConfig.showHeader ? width : width - 58.0;
+        height = renderBox.paintBounds.height + 30;
+        width = userConfig.showHeader ? width : width - 40.0;
         updateWindowSize(width, height);
         windowManager.setSize(Size(
             width,
