@@ -5,9 +5,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../functions.dart';
 import '../state/app_state.dart';
-import '../state/time_info.dart';
 
 class IconBar extends StatelessWidget {
   final double iconSize;
@@ -53,7 +51,7 @@ class IconBar extends StatelessWidget {
             // timerInfo.saveCurrentWindowSize(),
             appState.saveCurrentWindowSize(),
             // 设置窗口大小
-            windowManager.setSize(const Size(540, 900), animate: true),
+            windowManager.setSize(const Size(580, 900), animate: true),
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const SettingsPage()),

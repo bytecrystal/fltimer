@@ -1,5 +1,4 @@
 import 'package:flipclock/service/local_storage_service.dart';
-import 'package:flipclock/service/preferences_service.dart';
 import 'package:flipclock/state/app_state.dart';
 import 'package:flipclock/views/timer_screen.dart';
 import 'package:flutter/material.dart';

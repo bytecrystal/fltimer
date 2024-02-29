@@ -4,7 +4,7 @@ import 'package:flipclock/service/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../model/use_config.dart';
+import '../model/user_config.dart';
 
 class AppState extends ChangeNotifier {
   Duration timerDuration;
@@ -67,9 +67,27 @@ class AppState extends ChangeNotifier {
   void updateColor({required String type, required int color}) {
     if (type == 'clock') {
       userConfig.clock.color = color;
-    } else if (type == 'timer') {
+    } else if (type == 'headTitle') {
       userConfig.headTitle.color = color;
     }
+    LocalStorageService().setUserConfig(userConfig);
+    notifyListeners();
+  }
+
+  void updateClockHingeColor({required int color}) {
+    userConfig.clock.hingeColor = color;
+    LocalStorageService().setUserConfig(userConfig);
+    notifyListeners();
+  }
+
+  void updateClockBorderColor({required int color}) {
+    userConfig.clock.borderColor = color;
+    LocalStorageService().setUserConfig(userConfig);
+    notifyListeners();
+  }
+
+  void updateClockSeparatorColor({required int color}) {
+    userConfig.clock.separatorColor = color;
     LocalStorageService().setUserConfig(userConfig);
     notifyListeners();
   }

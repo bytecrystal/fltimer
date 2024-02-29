@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'use_config.dart';
+part of 'user_config.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
@@ -34,6 +34,9 @@ ClockModel _$ClockModelFromJson(Map<String, dynamic> json) => ClockModel(
       digitSize: (json['digitSize'] as num).toDouble(),
       cardWidth: (json['cardWidth'] as num).toDouble(),
       cardHeight: (json['cardHeight'] as num).toDouble(),
+      hingeColor: json['hingeColor'] as int,
+      borderColor: json['borderColor'] as int,
+      separatorColor: json['separatorColor'] as int,
     )..type = json['type'] as String;
 
 Map<String, dynamic> _$ClockModelToJson(ClockModel instance) =>
@@ -41,6 +44,9 @@ Map<String, dynamic> _$ClockModelToJson(ClockModel instance) =>
       'bgColor': instance.bgColor,
       'color': instance.color,
       'digitSize': instance.digitSize,
+      'hingeColor': instance.hingeColor,
+      'borderColor': instance.borderColor,
+      'separatorColor': instance.separatorColor,
       'type': instance.type,
       'cardWidth': instance.cardWidth,
       'cardHeight': instance.cardHeight,

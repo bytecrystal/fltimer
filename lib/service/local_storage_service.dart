@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../model/use_config.dart';
+import '../model/user_config.dart';
 
 // 创建一个单例类来封装SharedPreferences的操作
 class LocalStorageService {

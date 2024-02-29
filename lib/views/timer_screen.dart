@@ -33,6 +33,9 @@ class TimerScreenState extends State<TimerScreen> {
     return Consumer<AppState>(builder: (context, appState, child) {
       Color clockBgColor = Color(appState.userConfig.clock.bgColor);
       Color clockDigitColor = Color(appState.userConfig.clock.color);
+      Color clockHingeColor = Color(appState.userConfig.clock.hingeColor);
+      Color clockBorderColor = Color(appState.userConfig.clock.borderColor);
+      Color clockSeparatorColor = Color(appState.userConfig.clock.separatorColor);
       return Scaffold(
         backgroundColor: Color(appState.userConfig.appBgColor),
         // 创建一个可拖动的自定义标题栏
@@ -68,9 +71,9 @@ class TimerScreenState extends State<TimerScreen> {
                     digitColor: clockDigitColor,
                     separatorWidth: 40.0,
                     backgroundColor: clockBgColor,
-                    separatorColor: clockBgColor,
-                    borderColor: clockBgColor,
-                    hingeColor: Colors.grey[300],
+                    separatorColor: clockSeparatorColor,
+                    borderColor: clockBorderColor,
+                    hingeColor: clockHingeColor,
                     showSeconds: true,
                     showBorder: true,
                     hingeWidth: 0.8,

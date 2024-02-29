@@ -1,9 +1,7 @@
 import 'package:flipclock/state/app_state.dart';
-import 'package:flutter/animation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'color_picker_dialog.dart';
 
@@ -71,107 +69,102 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Widget _buildColorPick({required String label, required Color color, required Function(int) onColorChanged}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+            label,
+            style: const TextStyle(
+              fontSize: 18,
+            )
+        ),
+        SizedBox(height: 5,),
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            // color: Colors.black, // 容器内的填充颜色
+            border: Border.all(
+              color: Colors.grey, // 边框颜色
+              width: 5, // 边框宽度
+            ),
+            borderRadius: BorderRadius.circular(5), // 边框的圆角
+          ),
+          child: GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (_) => ColorPickerDialog(
+                  initialColor: color,
+                  colorPickerWidth: 350.0,
+                  onColorChanged: (Color color) {
+                    onColorChanged(color.value);
+                  },
+                ),
+              );
+            },
+            child: Container(
+              // width: 30,
+              // height: 30,
+              decoration: BoxDecoration(
+                color: color,
+                border: Border.all(color: Colors.white, width: 1),
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
   Widget _buildColorConfig({required AppState appState, required String type}) {
     Color bgColor = Color(type == 'clock' ? appState.userConfig.clock.bgColor : appState.userConfig.headTitle.bgColor);
     Color color = Color(type == 'clock' ? appState.userConfig.clock.color : appState.userConfig.headTitle.color);
     return Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                  '背景颜色',
-                  style: TextStyle(
-                    fontSize: 18,
-                    // fontWeight: FontWeight.bold,
-                    // color: Colors.black87,
-                  )
-              ),
-              SizedBox(height: 5,),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  // color: Colors.black, // 容器内的填充颜色
-                  border: Border.all(
-                    color: Colors.grey, // 边框颜色
-                    width: 5, // 边框宽度
-                  ),
-                  borderRadius: BorderRadius.circular(5), // 边框的圆角
-                ),
-                child: GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => ColorPickerDialog(
-                        initialColor: bgColor,
-                        colorPickerWidth: 350.0,
-                        onColorChanged: (Color color) {
-                          appState.updateBgColor(type: type, bgColor: color.value);
-                        },
-                      ),
-                    );
-                  },
-                  child: Container(
-                    // width: 30,
-                    // height: 30,
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      border: Border.all(color: Colors.white, width: 1),
-                    ),
-                  ),
-                ),
-              )
-            ],
+          _buildColorPick(
+              label: '背景颜色',
+              color: bgColor,
+              onColorChanged: (color) {
+                appState.updateBgColor(type: type, bgColor: color);
+              }
           ),
-          SizedBox(width: 25),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                  '文字颜色',
-                  style: TextStyle(
-                    fontSize: 18,
-                    // fontWeight: FontWeight.bold,
-                    // color: Colors.black87,
-                  )
-              ),
-              SizedBox(height: 5,),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey, // 边框颜色
-                    width: 5, // 边框宽度
-                  ),
-                  borderRadius: BorderRadius.circular(5), // 边框的圆角
-                ),
-                child: GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => ColorPickerDialog(
-                        initialColor: color,
-                        colorPickerWidth: 350.0,
-                        onColorChanged: (Color color) {
-                          appState.updateColor(type: type, color: color.value);
-                        },
-                      ),
-                    );
-                  },
-                  child: Container(
-                    // width: 30,
-                    // height: 30,
-                    decoration: BoxDecoration(
-                      color: color,
-                      border: Border.all(color: Colors.white, width: 1),
-                    ),
-                  ),
-                ),
-              )
-            ],
+          const SizedBox(width: 20,),
+          _buildColorPick(
+              label: '文字颜色',
+              color: color,
+              onColorChanged: (color) {
+                appState.updateColor(type: type, color: color);
+              }
           ),
+          const SizedBox(width: 20,),
+          if (type == 'clock')
+            _buildColorPick(
+                label: '分割线颜色',
+                color: Color(appState.userConfig.clock.hingeColor),
+                onColorChanged: (color) {
+                  appState.updateClockHingeColor(color: color);
+                }
+            ),
+          const SizedBox(width: 20,),
+          if (type == 'clock')
+            _buildColorPick(
+                label: '边框颜色',
+                color: Color(appState.userConfig.clock.borderColor),
+                onColorChanged: (color) {
+                  appState.updateClockBorderColor(color: color);
+                }
+            ),
+          const SizedBox(width: 20,),
+          if (type == 'clock')
+            _buildColorPick(
+                label: '点颜色',
+                color: Color(appState.userConfig.clock.separatorColor),
+                onColorChanged: (color) {
+                  appState.updateClockSeparatorColor(color: color);
+                }
+            ),
         ]
     );
   }
@@ -208,7 +201,7 @@ class _SettingsPageState extends State<SettingsPage> {
         appBar: AppBar(
           title: const Text("设置"),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () {
               // 自定义的返回事件
               // 可以调用Navigator.pop()或者你希望执行的其他逻辑
@@ -246,24 +239,25 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: Container(
                     width: 300,
                     height: 160,
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       // mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Text(
+                        const Text(
                           '时钟颜色',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 20), // 用于添加空间
-                        _buildColorConfig(appState: appState, type: 'clock')
+                        const SizedBox(height: 20), // 用于添加空间
+                        _buildColorConfig(appState: appState, type: 'clock'),
+
                       ],
                     ),
                   ),
                 ),
-                SizedBox(height: 20,),
+                const SizedBox(height: 20,),
                 _buildCard(
                   child: _buildCardContainer(
                     child: Row(
@@ -280,7 +274,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     height: 150
                   )
                 ),
-                SizedBox(height: 20,),
+                const SizedBox(height: 20,),
                 _buildCard(
                     child: _buildCardContainer(
                         child: Column(
@@ -318,7 +312,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         height: 300
                     )
                 ),
-                SizedBox(height: 20,),
+                const SizedBox(height: 20,),
                 _buildCard(
                     child: _buildCardContainer(
                         child: Column(
@@ -341,7 +335,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             // SizedBox(height: 30,),
                             Row(
                               children: [
-                                _buildColorConfig(appState: appState, type: 'timer')
+                                _buildColorConfig(appState: appState, type: 'headTitle')
                               ],
                             )
                           ],
@@ -350,55 +344,19 @@ class _SettingsPageState extends State<SettingsPage> {
                         height: 250
                     )
                 ),
-                SizedBox(height: 20,),
+                const SizedBox(height: 20,),
                 _buildCard(
                     child: _buildCardContainer(
                         child: Column(
                           children: [
                             Row(
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                        '背景颜色',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                        )
-                                    ),
-                                    SizedBox(height: 5,),
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey, // 边框颜色
-                                          width: 5, // 边框宽度
-                                        ),
-                                        borderRadius: BorderRadius.circular(5), // 边框的圆角
-                                      ),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (_) => ColorPickerDialog(
-                                              initialColor: Color(appState.userConfig.appBgColor),
-                                              colorPickerWidth: 350.0,
-                                              onColorChanged: (Color color) {
-                                                appState.updateAppBgColor(bgColor: color.value);
-                                              },
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Color(appState.userConfig.appBgColor),
-                                            border: Border.all(color: Colors.white, width: 1),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  ],
+                                _buildColorPick(
+                                  label: '背景颜色',
+                                  color: Color(appState.userConfig.appBgColor),
+                                  onColorChanged: (color) {
+                                    appState.updateAppBgColor(bgColor: color);
+                                  }
                                 ),
                               ],
                             )
@@ -407,7 +365,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         title: '应用设置',
                     )
                 ),
-                SizedBox(height: 20,),
+                const SizedBox(height: 20,),
               ]
             )
           ),

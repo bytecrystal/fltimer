@@ -2,7 +2,7 @@
 import 'package:flipclock/service/local_storage_service.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'use_config.g.dart';
+part 'user_config.g.dart';
 
 @JsonSerializable()
 class UserConfig {
@@ -42,7 +42,15 @@ class UserConfig {
 
   static UserConfig defaultConfig() {
     return UserConfig(
-      clock: ClockModel(bgColor: 0xFF000000, color: 0xFFFFFFFF, digitSize: 54.0, cardWidth: 54.0, cardHeight: 84.0),
+      clock: ClockModel(bgColor: 0xFF000000,
+          color: 0xFFFFFFFF,
+          digitSize: 54.0,
+          cardWidth: 54.0,
+          cardHeight: 84.0,
+          hingeColor: 0xFFFFFFFF,
+          borderColor: 0xFFFFFFFF,
+          separatorColor: 0xFFFFFFFF
+      ),
       headTitle: HeadTitleModel(bgColor: 0xFF000000, color: 0xFFFFFFFF),
       windowWidth: 585,
       windowHeight: 280,
@@ -60,9 +68,24 @@ class UserConfig {
 
 @JsonSerializable()
 class ClockModel {
+  // 背景颜色
   int bgColor;
+
+  // 数字颜色
   int color;
+
+  // 数字大小
   double digitSize;
+
+  // 分割线颜色
+  int hingeColor;
+
+  // 边框颜色
+  int borderColor;
+
+  // 分割点颜色
+  int separatorColor;
+
   String type = 'timer';
   double cardWidth;
   double cardHeight;
@@ -72,7 +95,10 @@ class ClockModel {
     required this.color,
     required this.digitSize,
     required this.cardWidth,
-    required this.cardHeight
+    required this.cardHeight,
+    required this.hingeColor,
+    required this.borderColor,
+    required this.separatorColor
   });
 
   factory ClockModel.fromJson(Map<String, dynamic> json) => _$ClockModelFromJson(json);

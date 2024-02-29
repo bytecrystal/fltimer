@@ -1,4 +1,4 @@
-import 'package:flipclock/model/use_config.dart';
+import 'package:flipclock/model/user_config.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
