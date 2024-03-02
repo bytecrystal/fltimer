@@ -23,74 +23,23 @@ class IconBar extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // if (!timerInfo.displayCurrentTime &&
-        //     timerInfo.duration.inSeconds > 0)
-        //   IconButton(
-        //     icon: Icon(timerInfo.isRunning
-        //         ? Icons.pause_circle_outline
-        //         : Icons.play_circle_outline),
-        //     onPressed: () => {
-        //       timerInfo.toggleTimer(() {
-        //         print("定时器结束");
-        //       })
-        //     },
-        //     iconSize: iconSize, // 可以自定义图标大小
-        //     tooltip: '开始/暂停', // 提供一个工具提示
-        //   ),
-        // // 定义按钮来选择颜色
-        // IconButton(
-        //   icon: const Icon(Icons.color_lens_outlined),
-        //   onPressed: () => timerInfo.pickColor(context),
-        //   iconSize: iconSize,
-        //   tooltip: '选择颜色', // 提供一个工具提示
-        // ),
-        // SizedBox(height: 20,),
         IconButton(
-          icon: const Icon(Icons.settings_outlined),
-          onPressed: () => {
-            // timerInfo.saveCurrentWindowSize(),
-            appState.saveCurrentWindowSize(),
-            // 设置窗口大小
-            windowManager.setSize(const Size(580, 900), animate: true),
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsPage()),
-            ).then((value) => {
-              Phoenix.rebirth(context)
-            })
-            // showTimePickerDialog(
-            //   context: context,
-            //   initialDuration: timerInfo.duration,
-            //   onDurationChanged: (value) {
-            //     timerInfo.setDuration(value);
-            //   },
-            // )
-          },
+          icon: Icon(
+            appState.userConfig.clock.type == 'clock'
+                ? Icons.access_time_outlined
+                : Icons.timer_outlined, // 使用条件图标来指示时间类型
+          ),
+          onPressed: appState.toggleDisplay, // 切换显示时间类型
           iconSize: iconSize, // 可以自定义图标大小
-          tooltip: '设置', // 提供一个工具提示
+          tooltip: '定时器/时钟', // 提供一个工具提示
         ),
-        // IconButton(
-        //   icon: const Icon(Icons.add_circle_outline),
-        //   iconSize: iconSize,
-        //   onPressed: timerInfo.increaseSize,
-        //   tooltip: '增加大小',
-        // ),
-        // IconButton(
-        //   icon: const Icon(Icons.remove_circle_outline),
-        //   iconSize: iconSize,
-        //   onPressed: timerInfo.decreaseSize,
-        //   tooltip: '减少大小',
-        // ),
-        // IconButton(
-        //   icon: Icon(
-        //     timerInfo.displayCurrentTime
-        //         ? Icons.access_time_outlined
-        //         : Icons.timer_outlined, // 使用条件图标来指示时间类型
-        //   ),
-        //   onPressed: timerInfo.toggleDisplayTime, // 切换显示时间类型
-        //   iconSize: iconSize, // 可以自定义图标大小
-        //   tooltip: '定时器/时钟', // 提供一个工具提示
-        // ),
+        if (appState.userConfig.clock.type == 'timer')
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: appState.resetTimer,
+            iconSize: iconSize, // 可以自定义图标大小
+            tooltip: '重置', // 提供一个工具提示
+          ),
         IconButton(
             icon: Icon(
               appState.userConfig.showHeader
@@ -100,6 +49,22 @@ class IconBar extends StatelessWidget {
             iconSize: iconSize,
             tooltip: '显示/隐藏标题栏',
             onPressed: appState.toggleWindowSizeWhereShowHeader),
+        IconButton(
+          icon: const Icon(Icons.settings_outlined),
+          onPressed: () => {
+            appState.saveCurrentWindowSize(),
+            // 设置窗口大小
+            windowManager.setSize(const Size(580, 900), animate: true),
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsPage()),
+            ).then((value) => {
+              Phoenix.rebirth(context)
+            })
+          },
+          iconSize: iconSize, // 可以自定义图标大小
+          tooltip: '设置', // 提供一个工具提示
+        ),
         // if (!timerInfo.displayCurrentTime &&
         //     timerInfo.duration.inSeconds == 0)
         //   IconButton(

@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:flipclock/state/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../state/time_info.dart';
 import 'flip_clock_builder.dart';
 
 /// FlipCountdownClock display a countdown flip clock.
@@ -15,7 +15,7 @@ import 'flip_clock_builder.dart';
 ///
 /// Most constructor parameters are required to define digits appearance,
 /// some parameters are optional, configuring flip panel appearance.
-class FlipCountdownClock extends StatelessWidget {
+class FlipCountdownClock extends StatefulWidget {
   /// FlipCountdownClock constructor.
   ///
   /// Parameters define clock digits and flip panel appearance.
@@ -86,39 +86,80 @@ class FlipCountdownClock extends StatelessWidget {
   /// This builder is created with most of my constructor parameters
   final FlipClockBuilder _displayBuilder;
 
+  @override
+  State<FlipCountdownClock> createState() => _FlipCountdownClockState();
+}
+
+class _FlipCountdownClockState extends State<FlipCountdownClock> with WidgetsBindingObserver {
+
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // 这里添加监听器
+    WidgetsBinding.instance.addObserver(this);
+    AppState appState = Provider.of<AppState>(context, listen: false);
+    appState.startTimer(onDone: widget.onDone);
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
+    // 移除监听器
+    WidgetsBinding.instance!.removeObserver(this);
+    // AppState appState = Provider.of<AppState>(context, listen: false);
+    // appState.timer?.cancel();
+    timer?.cancel();
+  }
+
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // 当从其他页面返回时，重新启动计时器
+      AppState appState = Provider.of<AppState>(context, listen: false);
+      appState.startTimer(onDone: widget.onDone);
+      timer = appState.timer;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    TimerInfo timerInfo = Provider.of<TimerInfo>(context, listen: false);
+    AppState appState = Provider.of<AppState>(context, listen: false);
+
+    // 取得剩余时间
+    Duration timeLeft = appState.timerDuration;
+    Stream<Duration>? durationStream = appState.durationStream;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (timerInfo.duration.inHours > 0) ...[
-          _buildHoursDisplay(timerInfo.durationStream, timerInfo.duration),
-          _displayBuilder.buildSeparator(context),
+        if (timeLeft.inHours > 0) ...[
+          _buildHoursDisplay(durationStream!, timeLeft),
+          widget._displayBuilder.buildSeparator(context),
         ],
-        _buildMinutesDisplay(timerInfo.durationStream, timerInfo.duration),
-        _displayBuilder.buildSeparator(context),
-        _buildSecondsDisplay(timerInfo.durationStream, timerInfo.duration),
+        _buildMinutesDisplay(durationStream!, timeLeft),
+        widget._displayBuilder.buildSeparator(context),
+        _buildSecondsDisplay(durationStream, timeLeft),
       ],
     );
   }
 
-  Widget _buildHoursDisplay(Stream<Duration> stream, Duration initValue) => _displayBuilder.buildTimePartDisplay(
+  Widget _buildHoursDisplay(Stream<Duration> stream, Duration initValue) => widget._displayBuilder.buildTimePartDisplay(
     stream.map((time) => time.inHours % 24),
     initValue.inHours % 24,
   );
 
-  Widget _buildMinutesDisplay(Stream<Duration> stream, Duration initValue) => _displayBuilder.buildTimePartDisplay(
+  Widget _buildMinutesDisplay(Stream<Duration> stream, Duration initValue) => widget._displayBuilder.buildTimePartDisplay(
     stream.map((time) => time.inMinutes % 60),
     initValue.inMinutes % 60,
   );
 
-  Widget _buildSecondsDisplay(Stream<Duration> stream, Duration initValue) => _displayBuilder.buildTimePartDisplay(
+  Widget _buildSecondsDisplay(Stream<Duration> stream, Duration initValue) => widget._displayBuilder.buildTimePartDisplay(
     stream.map((time) => time.inSeconds % 60),
     initValue.inSeconds % 60,
   );
-
 }
 

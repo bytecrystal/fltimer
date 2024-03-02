@@ -8,6 +8,7 @@ import '../model/user_config.dart';
 
 class AppState extends ChangeNotifier {
   Duration timerDuration;
+  Stream<Duration>? durationStream;
   Timer? timer;
   bool? timerIsRunning;
   UserConfig userConfig = LocalStorageService().getUserConfig()!;
@@ -23,6 +24,88 @@ class AppState extends ChangeNotifier {
     userConfig.setShowIconButton(!userConfig.showIconButton);
     notifyListeners();
   }
+
+  void toggleDisplay() {
+    if (userConfig.clock.type == 'clock') {
+      userConfig.clock.type = 'timer';
+    } else {
+      userConfig.clock.type = 'clock';
+      // stopTimer();
+    }
+    notifyListeners();
+  }
+
+  // 重置或启动计时器的函数
+  void startOrResetTimer(Duration targetDuration, VoidCallback? onDone) {
+    if (timer != null) {
+      timer!.cancel(); // 取消现有的计时器
+      notifyListeners();
+    }
+    timerDuration = targetDuration;
+    durationStream = Stream.periodic(const Duration(seconds: 1), (int count) {
+      final newTimeLeft = timerDuration - const Duration(seconds: 1);
+
+      // 更新 AppState
+      timerDuration = newTimeLeft > Duration.zero ? newTimeLeft : Duration.zero;
+
+      // 检查时间是否用完并可能调用完成处理程序
+      if (newTimeLeft <= Duration.zero) {
+        WidgetsBinding.instance!.addPostFrameCallback((_) {
+          onDone!();
+        });
+        timer!.cancel();
+      }
+
+      return newTimeLeft;
+    }).asBroadcastStream();
+
+    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
+      notifyListeners();
+    });
+  }
+
+  // 启动计时器
+  void startTimer({VoidCallback? onDone}) {
+    const step = Duration(seconds: 1);
+
+    // 初始化时从全局状态（appState）获取剩余时长
+    durationStream = Stream<Duration>.periodic(step, (int count) {
+      timerDuration -= step;
+
+      if (timerDuration.inSeconds > 0) {
+        return timerDuration;
+      } else {
+        if (onDone != null && !timer!.isActive) {
+          onDone();
+        }
+        timer!.cancel();
+        return Duration.zero;
+      }
+    }).takeWhile((duration) => duration.inSeconds > 0).asBroadcastStream();
+
+    timer = Timer.periodic(step, (Timer t) {
+      notifyListeners();
+    });
+  }
+
+  // 重置计时器
+  void resetTimer() {
+    startOrResetTimer(const Duration(minutes: 30, seconds: 1), () => {}); // 重置时间为30分钟
+    notifyListeners();
+  }
+
+  // 停止计时器
+  void stopTimer() {
+    // 取消现有的计时器
+    if (timer != null) {
+      timer!.cancel();
+    }
+
+    timerDuration = Duration.zero;
+
+    notifyListeners();
+  }
+
 
   void updateHeadTitle(String title) {
     userConfig.headTitle.title = title;

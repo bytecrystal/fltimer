@@ -110,7 +110,7 @@ class ClockModel {
 class HeadTitleModel {
   int bgColor;
   int color;
-  String title = '长路不必问归程';
+  String title = '泱泱大道 无有其极';
 
   HeadTitleModel({required this.bgColor, required this.color});
 
