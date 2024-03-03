@@ -92,8 +92,6 @@ class FlipCountdownClock extends StatefulWidget {
 
 class _FlipCountdownClockState extends State<FlipCountdownClock> with WidgetsBindingObserver {
 
-  Timer? timer;
-
   @override
   void initState() {
     super.initState();
@@ -111,7 +109,7 @@ class _FlipCountdownClockState extends State<FlipCountdownClock> with WidgetsBin
     WidgetsBinding.instance!.removeObserver(this);
     // AppState appState = Provider.of<AppState>(context, listen: false);
     // appState.timer?.cancel();
-    timer?.cancel();
+    // timer?.cancel();
   }
 
 
@@ -121,7 +119,7 @@ class _FlipCountdownClockState extends State<FlipCountdownClock> with WidgetsBin
       // 当从其他页面返回时，重新启动计时器
       AppState appState = Provider.of<AppState>(context, listen: false);
       appState.startTimer(onDone: widget.onDone);
-      timer = appState.timer;
+      // timer = appState.timer;
     }
   }
 

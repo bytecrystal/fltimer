@@ -9,7 +9,6 @@ import '../model/user_config.dart';
 class AppState extends ChangeNotifier {
   Duration timerDuration;
   Stream<Duration>? durationStream;
-  Timer? timer;
   bool? timerIsRunning;
   UserConfig userConfig = LocalStorageService().getUserConfig()!;
 
@@ -37,10 +36,6 @@ class AppState extends ChangeNotifier {
 
   // 重置或启动计时器的函数
   void startOrResetTimer(Duration targetDuration, VoidCallback? onDone) {
-    if (timer != null) {
-      timer!.cancel(); // 取消现有的计时器
-      notifyListeners();
-    }
     timerDuration = targetDuration;
     durationStream = Stream.periodic(const Duration(seconds: 1), (int count) {
       final newTimeLeft = timerDuration - const Duration(seconds: 1);
@@ -53,15 +48,12 @@ class AppState extends ChangeNotifier {
         WidgetsBinding.instance!.addPostFrameCallback((_) {
           onDone!();
         });
-        timer!.cancel();
       }
 
       return newTimeLeft;
     }).asBroadcastStream();
+    notifyListeners();
 
-    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      notifyListeners();
-    });
   }
 
   // 启动计时器
@@ -75,17 +67,13 @@ class AppState extends ChangeNotifier {
       if (timerDuration.inSeconds > 0) {
         return timerDuration;
       } else {
-        if (onDone != null && !timer!.isActive) {
+        if (onDone != null) {
           onDone();
         }
-        timer!.cancel();
         return Duration.zero;
       }
     }).takeWhile((duration) => duration.inSeconds > 0).asBroadcastStream();
-
-    timer = Timer.periodic(step, (Timer t) {
-      notifyListeners();
-    });
+    // notifyListeners();
   }
 
   // 重置计时器
@@ -96,13 +84,7 @@ class AppState extends ChangeNotifier {
 
   // 停止计时器
   void stopTimer() {
-    // 取消现有的计时器
-    if (timer != null) {
-      timer!.cancel();
-    }
-
     timerDuration = Duration.zero;
-
     notifyListeners();
   }
 
@@ -134,7 +116,7 @@ class AppState extends ChangeNotifier {
   void updateBgColor({required String type, required int bgColor}) {
     if (type == 'clock') {
       userConfig.clock.bgColor = bgColor;
-    } else if (type == 'timer') {
+    } else if (type == 'headTitle') {
       userConfig.headTitle.bgColor = bgColor;
     }
     LocalStorageService().setUserConfig(userConfig);
