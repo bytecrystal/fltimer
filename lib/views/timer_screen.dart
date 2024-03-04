@@ -66,6 +66,7 @@ class TimerScreenState extends State<TimerScreen> {
     Color clockBorderColor = Color(appState.userConfig.clock.borderColor);
     Color clockSeparatorColor = Color(appState.userConfig.clock.separatorColor);
     return Container(
+      key: _timeContainerKey,
       alignment: Alignment.center,
       // key: timerInfo.timeWidgetKey,
       // decoration: const BoxDecoration(
