@@ -12,7 +12,12 @@ class AppState extends ChangeNotifier {
   bool? timerIsRunning;
   UserConfig userConfig = LocalStorageService().getUserConfig()!;
 
-  AppState(this.timerDuration);
+  AppState(this.timerDuration) {
+    Duration? duration = LocalStorageService().getTimerDuration();
+    if (duration != null) {
+      timerDuration = duration;
+    }
+  }
 
   void toggleShowHeader() {
     userConfig.setShowHeader(!userConfig.showHeader);
@@ -32,6 +37,35 @@ class AppState extends ChangeNotifier {
       // stopTimer();
     }
     notifyListeners();
+  }
+
+  String formattedDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String hours = twoDigits(duration.inHours);
+    String minutes = twoDigits(duration.inMinutes.remainder(60));
+    String seconds = twoDigits(duration.inSeconds.remainder(60));
+
+    String formattedTime = "$hours:$minutes:$seconds";
+    return formattedTime;
+  }
+
+
+  Future<void> showTimePickerDialog(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      confirmText: "确定",
+      cancelText: "取消",
+      helpText: '选择时间',
+      initialTime: TimeOfDay(
+        hour: timerDuration.inHours,
+        minute: timerDuration.inMinutes.remainder(60),
+      ),
+    );
+    if (picked != null) {
+        timerDuration = Duration(hours: picked.hour, minutes: picked.minute);
+        LocalStorageService().setTimerDuration(timerDuration);
+        notifyListeners();
+    }
   }
 
   // 重置或启动计时器的函数

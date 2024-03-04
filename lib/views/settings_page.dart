@@ -259,15 +259,36 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(height: 20,),
                 _buildCard(
+                    child: _buildCardContainer(
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              _buildColorPick(
+                                  label: '背景颜色',
+                                  color: Color(appState.userConfig.appBgColor),
+                                  onColorChanged: (color) {
+                                    appState.updateAppBgColor(bgColor: color);
+                                  }
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                      title: '应用设置',
+                    )
+                ),
+                const SizedBox(height: 20,),
+                _buildCard(
                   child: _buildCardContainer(
                     child: Row(
                       children: [
                         IconButton(
-                          onPressed: () => {},
+                          onPressed: () => appState.showTimePickerDialog(context),
                           icon: Icon(Icons.timer_outlined, color: Colors.black),
                         ),
-                        SizedBox(width: 10,),
-                        Text('10:30:00', style: TextStyle(fontSize: 24),),
+                        const SizedBox(width: 10,),
+                        Text(appState.formattedDuration(appState.timerDuration), style: const TextStyle(fontSize: 24),),
                       ],
                     ),
                     title: '倒计时时间',
@@ -345,27 +366,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     )
                 ),
                 const SizedBox(height: 20,),
-                _buildCard(
-                    child: _buildCardContainer(
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                _buildColorPick(
-                                  label: '背景颜色',
-                                  color: Color(appState.userConfig.appBgColor),
-                                  onColorChanged: (color) {
-                                    appState.updateAppBgColor(bgColor: color);
-                                  }
-                                ),
-                              ],
-                            )
-                          ],
-                        ),
-                        title: '应用设置',
-                    )
-                ),
-                const SizedBox(height: 20,),
+
               ]
             )
           ),

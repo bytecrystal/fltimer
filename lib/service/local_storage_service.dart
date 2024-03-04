@@ -52,6 +52,16 @@ class LocalStorageService {
     return UserConfig.fromJson(json.decode(userJson));
   }
 
+  Future<void> setTimerDuration(Duration duration) async {
+    await _prefs.setInt('timerDuration', duration.inMilliseconds);
+  }
+
+  Duration? getTimerDuration() {
+    int? timerDuration = _prefs.getInt('timerDuration');
+    if (timerDuration == null) return const Duration(minutes: 30);
+    return Duration(milliseconds: timerDuration);
+  }
+
   // 清除方法
   Future<void> remove(String key) async {
     await _prefs.remove(key);
