@@ -36,7 +36,9 @@ class IconBar extends StatelessWidget {
         if (appState.userConfig.clock.type == 'timer')
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: appState.resetTimer,
+            onPressed: () => {
+              appState.resetTimer(context)
+            },
             iconSize: iconSize, // 可以自定义图标大小
             tooltip: '重置', // 提供一个工具提示
           ),

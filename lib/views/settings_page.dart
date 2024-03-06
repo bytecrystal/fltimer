@@ -213,7 +213,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           actions: <Widget>[
             TextButton(
-              onPressed: () => {},
+              onPressed: () => {
+                appState.resetToDefault()
+              },
               child: const Row(
                 children: [
                   Text('重置默认'),

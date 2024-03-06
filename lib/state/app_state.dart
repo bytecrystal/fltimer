@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipclock/service/local_storage_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../model/user_config.dart';
@@ -87,7 +88,6 @@ class AppState extends ChangeNotifier {
       return newTimeLeft;
     }).asBroadcastStream();
     notifyListeners();
-
   }
 
   // 启动计时器
@@ -111,8 +111,11 @@ class AppState extends ChangeNotifier {
   }
 
   // 重置计时器
-  void resetTimer() {
-    startOrResetTimer(const Duration(minutes: 30, seconds: 1), () => {}); // 重置时间为30分钟
+  void resetTimer(BuildContext context) {
+    // Duration? duration = LocalStorageService().getTimerDuration();
+    // startOrResetTimer(duration ?? const Duration(minutes: 30), () => {}); // 重置时间为30分钟
+    Phoenix.rebirth(context);
+
     notifyListeners();
   }
 
@@ -252,7 +255,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void test() {
+
+  resetToDefault() {
+    timerDuration = const Duration(minutes: 30);
+    LocalStorageService().setTimerDuration(timerDuration);
+
+    userConfig = UserConfig.defaultConfig();
+    LocalStorageService().setUserConfig(userConfig);
+    notifyListeners();
   }
 
 }

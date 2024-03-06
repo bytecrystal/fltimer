@@ -18,8 +18,8 @@ void main() async {
     size: Size(windowWidth, windowHeight),
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
-    // minimumSize: Size(500, 160),
-    // maximumSize: const Size(600, 280),
+    minimumSize: const Size(500, 160),
+    maximumSize: const Size(580, 900),
   );
   // 确保窗口创建后再显示
 
@@ -42,7 +42,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WindowListener {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     windowManager.addListener(this);
   }
